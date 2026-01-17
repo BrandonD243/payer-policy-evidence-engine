@@ -1,0 +1,347 @@
+version: 1.0
+description: >
+  Canonical medical concept registry for CPT 72148 (MRI Lumbar Spine).
+  Concepts are policy-aligned and used for semantic extraction and confidence scoring.
+
+concepts:
+
+  spinal_stenosis:
+    category: diagnosis
+    definition: Narrowing of the spinal canal resulting in neural compression.
+    positive_indicators:
+      - spinal stenosis
+      - narrowing of the spinal canal
+      - reduced canal diameter
+      - central canal narrowing
+      - constricted spinal canal
+    supporting_findings:
+      - nerve root compression
+      - neurogenic claudication
+    negation_phrases:
+      - no spinal stenosis
+      - canal widely patent
+    certainty_signals:
+      confirmed:
+        - diagnosed with
+        - imaging shows
+        - MRI demonstrates
+      suspected:
+        - concerning for
+        - possible
+        - may represent
+
+  spinal_cord_compression:
+    category: neurologic_condition
+    definition: Compression of the spinal cord causing neurologic compromise.
+    positive_indicators:
+      - spinal cord compression
+      - cord compression
+      - compression of the spinal cord
+    certainty_signals:
+      suspected:
+        - suspected
+        - concern for
+      confirmed:
+        - confirmed
+        - evident on imaging
+
+  cauda_equina_syndrome:
+    category: neurologic_emergency
+    definition: Compression of the cauda equina nerve roots.
+    positive_indicators:
+      - cauda equina syndrome
+      - compression of cauda equina
+    supporting_findings:
+      - saddle anesthesia
+      - bowel or bladder dysfunction
+
+  congenital_spinal_anomaly:
+    category: congenital
+    definition: Congenital structural abnormality of the spine.
+    positive_indicators:
+      - congenital spinal anomaly
+      - congenital deformity
+      - spinal dysraphism
+      - scoliosis since birth
+
+  epidural_lipomatosis:
+    category: diagnosis
+    definition: Excessive fat deposition in the epidural space.
+    positive_indicators:
+      - epidural lipomatosis
+      - fatty overgrowth in epidural space
+
+  prior_spinal_surgery:
+    category: surgical_history
+    definition: History of prior operative intervention on the spine.
+    positive_indicators:
+      - prior spinal surgery
+      - status post spinal surgery
+      - s/p laminectomy
+      - spinal fusion
+
+  recurrent_spinal_symptoms:
+    category: symptom
+    definition: Return or persistence of spinal symptoms after prior surgery.
+    positive_indicators:
+      - recurrent pain
+      - return of symptoms
+      - worsening after surgery
+
+  planned_epidural_injection:
+    category: procedural_planning
+    definition: Planned epidural steroid or anesthetic injection.
+    positive_indicators:
+      - planned epidural injection
+      - epidural steroid injection planned
+      - ESI planned
+
+  spinal_malignancy:
+    category: malignancy
+    definition: Cancer involving the spine or spinal cord.
+    positive_indicators:
+      - spinal malignancy
+      - spinal cancer
+      - malignant spinal tumor
+
+  spinal_infection:
+    category: infection
+    definition: Infectious process involving the spine or surrounding tissues.
+    positive_indicators:
+      - spinal infection
+      - epidural abscess
+      - osteomyelitis
+      - discitis
+    certainty_signals:
+      suspected:
+        - suspected
+        - concern for
+      confirmed:
+        - diagnosed
+        - culture proven
+
+  myelopathy:
+    category: neurologic_condition
+    definition: Dysfunction of the spinal cord.
+    positive_indicators:
+      - myelopathy
+      - spinal cord dysfunction
+      - upper motor neuron signs
+
+  spinal_cord_tumor:
+    category: malignancy
+    definition: Primary tumor of the spinal cord.
+    positive_indicators:
+      - spinal cord tumor
+      - intramedullary tumor
+
+  radiculopathy:
+    category: neurologic_symptom
+    definition: Pain or neurologic symptoms radiating along a nerve root.
+    positive_indicators:
+      - radiculopathy
+      - radiating pain
+      - nerve root pain
+      - sciatica
+
+  objective_neurologic_deficit:
+    category: neurologic_finding
+    definition: Objective abnormalities on neurologic examination.
+    positive_indicators:
+      - decreased reflexes
+      - motor weakness
+      - sensory deficit
+      - abnormal neurologic exam
+
+  conservative_therapy_6_weeks:
+    category: treatment_history
+    definition: At least six weeks of conservative, non-operative therapy.
+    therapy_indicators:
+      - physical therapy
+      - NSAIDs
+      - analgesics
+      - muscle relaxants
+    duration_indicators:
+      - six weeks
+      - 6 weeks
+      - more than one month
+
+  spinal_bone_tumor:
+    category: malignancy
+    definition: Tumor involving vertebral bone.
+    positive_indicators:
+      - spinal bone tumor
+      - vertebral tumor
+
+  spinal_metastases:
+    category: malignancy
+    definition: Metastatic disease involving the spine.
+    positive_indicators:
+      - spinal metastases
+      - metastatic disease to spine
+      - vertebral metastases
+
+  progressive_symptoms:
+    category: symptom
+    definition: Symptoms worsening over time.
+    positive_indicators:
+      - progressively worsening
+      - increasing severity
+      - deterioration
+
+  conservative_management:
+    category: treatment_history
+    definition: Non-operative management of spinal symptoms.
+    positive_indicators:
+      - conservative management
+      - non-operative treatment
+
+  rapid_neurologic_decline:
+    category: neurologic_emergency
+    definition: Rapid worsening of neurologic function.
+    positive_indicators:
+      - rapidly progressing neurologic deficit
+      - acute neurologic decline
+
+  motor_weakness:
+    category: neurologic_finding
+    definition: Decreased muscle strength.
+    positive_indicators:
+      - motor weakness
+      - decreased strength
+      - paralysis
+
+  severe_back_pain:
+    category: symptom_severity
+    definition: Severe spinal pain impairing function.
+    positive_indicators:
+      - severe back pain
+      - intractable pain
+
+  hospitalization:
+    category: care_setting
+    definition: Admission to a hospital.
+    positive_indicators:
+      - hospitalized
+      - admitted
+      - inpatient stay
+
+  spondylolisthesis:
+    category: diagnosis
+    definition: Forward displacement of a vertebra.
+    positive_indicators:
+      - spondylolisthesis
+      - vertebral slippage
+
+  degenerative_spine_disease:
+    category: diagnosis
+    definition: Degenerative changes of the spine.
+    positive_indicators:
+      - degenerative disc disease
+      - degenerative changes
+      - osteoarthritis of spine
+
+  conservative_therapy_4_weeks:
+    category: treatment_history
+    definition: At least four weeks of conservative therapy.
+    duration_indicators:
+      - four weeks
+      - 4 weeks
+      - one month
+
+  spinal_cord_injury:
+    category: trauma
+    definition: Injury to the spinal cord.
+    positive_indicators:
+      - spinal cord injury
+      - SCI
+
+  trauma:
+    category: context
+    definition: Physical injury due to external force.
+    positive_indicators:
+      - trauma
+      - fall
+      - motor vehicle accident
+
+  spinal_fracture:
+    category: trauma
+    definition: Fracture of vertebral bone.
+    positive_indicators:
+      - spinal fracture
+      - vertebral fracture
+
+  spinal_dislocation:
+    category: trauma
+    definition: Dislocation of vertebral alignment.
+    positive_indicators:
+      - spinal dislocation
+      - vertebral dislocation
+
+  transverse_myelitis:
+    category: inflammatory_condition
+    definition: Inflammation of the spinal cord.
+    positive_indicators:
+      - transverse myelitis
+      - inflammatory myelopathy
+    certainty_signals:
+      suspected:
+        - suspected
+        - might have
+        - concern for
+      confirmed:
+        - diagnosed with
+
+  bonemri:
+    category: imaging_technique
+    definition: MRI-based synthetic CT (BoneMRI).
+    positive_indicators:
+      - BoneMRI
+      - synthetic CT MRI
+
+  dynamic_kinetic_mri:
+    category: imaging_technique
+    definition: Dynamic or kinetic MRI imaging.
+    positive_indicators:
+      - dynamic MRI
+      - kinetic MRI
+
+  dual_energy_ct:
+    category: imaging_technique
+    definition: Dual-energy CT imaging.
+    positive_indicators:
+      - dual-energy CT
+
+  negative_ct:
+    category: imaging_result
+    definition: CT imaging without abnormal findings.
+    positive_indicators:
+      - negative CT
+      - normal CT
+
+  neurologically_intact:
+    category: neurologic_status
+    definition: No neurologic deficits present.
+    positive_indicators:
+      - neurologically intact
+      - no neurologic deficits
+
+  obtunded_patient:
+    category: neurologic_status
+    definition: Reduced level of consciousness.
+    positive_indicators:
+      - obtunded
+      - comatose
+
+  normal_ct:
+    category: imaging_result
+    definition: CT scan without abnormal findings.
+    positive_indicators:
+      - normal CT
+
+  non_covered_indication:
+    category: policy
+    definition: Indication not covered by the policy.
+    positive_indicators:
+      - routine imaging
+      - screening only

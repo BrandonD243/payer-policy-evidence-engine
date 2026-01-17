@@ -1,0 +1,5 @@
+Patient Name: John Doe
+Age: 58
+History: The patient reports persistent lower back pain radiating down the left leg. Physical exam shows decreased reflexes and mild motor weakness in the left leg. MRI demonstrates narrowing of the spinal canal consistent with spinal stenosis. No prior spinal surgeries. Conservative therapy including NSAIDs and physical therapy for 6 weeks has been tried without improvement.
+Planned Procedures: No epidural injections scheduled at this time.
+Impression: Lumbar spinal stenosis with radiculopathy, persistent symptoms after conservative management.

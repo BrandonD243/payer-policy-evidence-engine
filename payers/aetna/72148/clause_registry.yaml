@@ -1,0 +1,257 @@
+cpt_code: 72148
+payer: aetna
+policy_name: MRI and CT of the Spine
+version: 2024-11-01
+source: Aetna Clinical Policy Bulletin
+
+approval_clauses:
+
+  - id: AETNA_72148_C01
+    name: Clinical evidence of spinal stenosis
+    policy_text: Clinical evidence of spinal stenosis.
+    clause_type: diagnosis_based
+    required_concepts:
+      - spinal_stenosis
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_72148_C02
+    name: Spinal cord or cauda equina compression
+    policy_text: Clinical suspicion of a spinal cord or cauda equina compression syndrome.
+    clause_type: suspicion_based
+    required_concepts:
+      - spinal_cord_compression
+      - cauda_equina_syndrome
+    expected_certainty: suspected
+    minimum_confidence: weak
+
+  - id: AETNA_72148_C03
+    name: Congenital spinal anomalies or deformities
+    policy_text: Congenital anomalies or deformities of the spine.
+    clause_type: diagnosis_based
+    required_concepts:
+      - congenital_spinal_anomaly
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_72148_C04
+    name: Lumbar epidural lipomatosis
+    policy_text: Diagnosis and evaluation of lumbar epidural lipomatosis.
+    clause_type: diagnosis_based
+    required_concepts:
+      - epidural_lipomatosis
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_72148_C05
+    name: Recurrent symptoms after spinal surgery
+    policy_text: Evaluation of recurrent symptoms after spinal surgery.
+    clause_type: post_surgical
+    required_concepts:
+      - prior_spinal_surgery
+      - recurrent_spinal_symptoms
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_72148_C06
+    name: Pre-epidural injection evaluation
+    policy_text: >
+      Evaluation prior to epidural injection to rule out tumor or infection
+      and to delineate the optimal anatomical location.
+    clause_type: procedural_planning
+    required_concepts:
+      - planned_epidural_injection
+    optional_concepts:
+      - suspected_spinal_tumor
+      - suspected_spinal_infection
+    expected_certainty: planned
+    minimum_confidence: weak
+
+  - id: AETNA_72148_C07
+    name: Follow-up of spinal malignancy or infection
+    policy_text: Follow-up of evaluation for spinal malignancy or spinal infection.
+    clause_type: follow_up
+    required_concepts:
+      - spinal_malignancy
+      - spinal_infection
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_72148_C08
+    name: Known or suspected myelopathy
+    policy_text: >
+      Known or suspected myelopathy for initial diagnosis when MRI of the brain
+      is negative or symptoms mimic other spinal or brainstem lesions.
+    clause_type: suspicion_based
+    required_concepts:
+      - myelopathy
+    expected_certainty: suspected
+    minimum_confidence: weak
+
+  - id: AETNA_72148_C09
+    name: Primary spinal cord tumor
+    policy_text: Known or suspected primary spinal cord tumors.
+    clause_type: suspicion_based
+    required_concepts:
+      - spinal_cord_tumor
+    expected_certainty: suspected
+    minimum_confidence: weak
+
+  - id: AETNA_72148_C10
+    name: Persistent radiculopathy after conservative therapy
+    policy_text: >
+      Persistent back or neck pain with radiculopathy and objective neurologic
+      findings, with no improvement after 6 weeks of conservative therapy.
+    clause_type: symptom_based
+    required_concepts:
+      - radiculopathy
+      - objective_neurologic_deficit
+      - conservative_therapy_6_weeks
+    expected_certainty: confirmed
+    minimum_confidence: strong
+
+  - id: AETNA_72148_C11
+    name: Primary spinal bone tumor or metastases
+    policy_text: >
+      Primary spinal bone tumors or suspected vertebral, paraspinal,
+      or intraspinal metastases.
+    clause_type: suspicion_based
+    required_concepts:
+      - spinal_bone_tumor
+      - spinal_metastases
+    expected_certainty: suspected
+    minimum_confidence: weak
+
+  - id: AETNA_72148_C12
+    name: Progressive symptoms despite conservative management
+    policy_text: Progressively severe symptoms despite conservative management.
+    clause_type: symptom_based
+    required_concepts:
+      - progressive_symptoms
+      - conservative_management
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_72148_C13
+    name: Rapid neurologic deficit or major motor weakness
+    policy_text: Rapidly progressing neurological deficit or major motor weakness.
+    clause_type: neurologic_emergency
+    required_concepts:
+      - rapid_neurologic_decline
+      - motor_weakness
+    expected_certainty: confirmed
+    minimum_confidence: strong
+
+  - id: AETNA_72148_C14
+    name: Severe back pain requiring hospitalization
+    policy_text: Severe back pain (e.g., requiring hospitalization).
+    clause_type: severity_based
+    required_concepts:
+      - severe_back_pain
+      - hospitalization
+    expected_certainty: confirmed
+    minimum_confidence: strong
+
+  - id: AETNA_72148_C15
+    name: Spondylolisthesis or degenerative disease after therapy
+    policy_text: >
+      Spondylolisthesis or degenerative disease of the spine that has not
+      responded to 4 weeks of conservative therapy.
+    clause_type: diagnosis_based
+    required_concepts:
+      - spondylolisthesis
+      - degenerative_spine_disease
+      - conservative_therapy_4_weeks
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_72148_C16
+    name: Suspected spinal infection
+    policy_text: Suspected infectious process of the spine.
+    clause_type: suspicion_based
+    required_concepts:
+      - spinal_infection
+    expected_certainty: suspected
+    minimum_confidence: weak
+
+  - id: AETNA_72148_C17
+    name: Suspected spinal cord injury due to trauma
+    policy_text: Suspected spinal cord injury secondary to trauma.
+    clause_type: trauma_related
+    required_concepts:
+      - spinal_cord_injury
+      - trauma
+    expected_certainty: suspected
+    minimum_confidence: weak
+
+  - id: AETNA_72148_C18
+    name: Suspected spinal fracture or dislocation
+    policy_text: >
+      Suspected spinal fracture or dislocation secondary to trauma
+      when plain films are not conclusive.
+    clause_type: trauma_related
+    required_concepts:
+      - spinal_fracture
+      - spinal_dislocation
+      - trauma
+    expected_certainty: suspected
+    minimum_confidence: weak
+
+  - id: AETNA_72148_C19
+    name: Suspected transverse myelitis
+    policy_text: Suspected transverse myelitis.
+    clause_type: suspicion_based
+    required_concepts:
+      - transverse_myelitis
+    expected_certainty: suspected
+    minimum_confidence: weak
+
+
+exclusion_clauses:
+
+  - id: AETNA_72148_E01
+    name: BoneMRI is experimental
+    policy_text: >
+      Aetna considers BoneMRI experimental, investigational, or unproven.
+    exclusion_concepts:
+      - bonemri
+
+  - id: AETNA_72148_E02
+    name: Imaging for indications not listed
+    policy_text: >
+      MRI and CT of the spine are unproven for all other indications.
+    exclusion_concepts:
+      - non_covered_indication
+
+  - id: AETNA_72148_E03
+    name: MRI after negative CT in neurologically intact trauma
+    policy_text: >
+      MRI for further evaluation after a negative CT in neurologically intact
+      blunt trauma patients is not medically necessary.
+    exclusion_concepts:
+      - negative_ct
+      - neurologically_intact
+      - blunt_trauma
+
+  - id: AETNA_72148_E04
+    name: Dynamic-kinetic MRI
+    policy_text: Dynamic-kinetic MRI is experimental.
+    exclusion_concepts:
+      - dynamic_kinetic_mri
+
+  - id: AETNA_72148_E05
+    name: Routine MRI after normal CT in obtunded patients
+    policy_text: >
+      Routine MRI after a normal CT in obtunded or comatose individuals
+      is experimental or unproven.
+    exclusion_concepts:
+      - obtunded_patient
+      - normal_ct
+
+  - id: AETNA_72148_E06
+    name: Dual-energy CT for vertebral fractures
+    policy_text: >
+      Dual-energy CT for evaluation of bone marrow edema or fracture lines
+      is experimental or unproven.
+    exclusion_concepts:
+      - dual_energy_ct
