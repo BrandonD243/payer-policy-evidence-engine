@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Payer Policy Reasoning Engine
 
 A knowledge-graph–driven system for evaluating medical prior authorization
@@ -21,4 +22,4 @@ This project separates concerns into three layers:
    - Outputs are validated against expected outcomes
 
 ## Key Directories
-
+	
