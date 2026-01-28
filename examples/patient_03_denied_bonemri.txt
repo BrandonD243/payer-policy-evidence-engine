@@ -1,0 +1,26 @@
+===============================
+PATIENT DEMOGRAPHICS
+===============================
+Name: William Chen
+Age: 61
+
+===============================
+HISTORY
+===============================
+Chronic low back pain for several years, unchanged.
+
+===============================
+REQUEST
+===============================
+Request for MRI-based synthetic CT (BoneMRI) for lumbar spine
+evaluation instead of standard MRI.
+
+===============================
+ASSESSMENT
+===============================
+Chronic stable back pain without neurological deficits.
+
+===============================
+PLAN
+===============================
+Proceed with BoneMRI imaging.

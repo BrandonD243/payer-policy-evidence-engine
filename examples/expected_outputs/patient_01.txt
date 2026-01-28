@@ -1,0 +1,2 @@
+approval_clauses: ["AETNA_72148_C01", "AETNA_72148_C10"]
+exclusion_clauses: []

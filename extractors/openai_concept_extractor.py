@@ -11,15 +11,13 @@ def extract_concepts_from_text(
     model: str = "gpt-4o-mini"
 ) -> List[Dict]:
     """
-    Uses OpenAI to extract policy-aligned medical concept mentions from text.
-
     Returns:
     [
         {
             "concept_id": "spinal_stenosis",
-            "text_span": "...",
-            "confidence": "weak | moderate | strong",
-            "certainty_level": "confirmed | suspected | planned"
+            "evidence_text": "Lumbar spinal stenosis with left-sided radiculopathy",
+            "confidence": "strong",
+            "certainty_level": "confirmed"
         }
     ]
     """
@@ -74,7 +72,14 @@ CONCEPT REGISTRY:
 
     try:
         parsed = json.loads(raw_output)
-        return parsed.get("concept_mentions", [])
+        mentions = parsed.get("concept_mentions", [])
+
+        # Rename text_span → evidence_text
+        for m in mentions:
+            m["evidence_text"] = m.pop("text_span")
+
+        return mentions
+
     except json.JSONDecodeError:
         print("⚠️ OpenAI returned invalid JSON:")
         print(raw_output)

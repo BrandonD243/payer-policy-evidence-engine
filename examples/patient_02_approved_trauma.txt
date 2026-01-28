@@ -1,0 +1,40 @@
+===============================
+PATIENT DEMOGRAPHICS
+===============================
+Name: Maria Gonzalez
+Age: 42
+Sex: Female
+
+===============================
+EVENT HISTORY
+===============================
+Patient involved in motor vehicle collision yesterday. Restrained
+driver struck from rear at highway speed.
+
+===============================
+SYMPTOMS
+===============================
+- Severe lumbar pain
+- Bilateral leg numbness
+- Difficulty standing
+
+===============================
+PHYSICAL EXAM
+===============================
+- Decreased sensation bilaterally in L4-L5 distribution
+- Motor weakness 3/5 bilateral lower extremities
+
+===============================
+IMAGING
+===============================
+CT lumbar spine negative for fracture.
+
+===============================
+ASSESSMENT
+===============================
+Concern for spinal cord injury despite negative CT.
+
+===============================
+PLAN
+===============================
+Urgent MRI lumbar spine requested to assess spinal cord and soft tissue injury.

@@ -1,0 +1,67 @@
+===============================
+PATIENT DEMOGRAPHICS
+===============================
+Name: John Doe
+DOB: 02/14/1966
+Age: 58
+Sex: Male
+MRN: 839201
+
+===============================
+CHIEF COMPLAINT
+===============================
+Progressive lower back pain with radiation to the left leg.
+
+===============================
+HISTORY OF PRESENT ILLNESS
+===============================
+The patient is a 58-year-old male presenting with a 4-month history of
+lower back pain radiating down the posterior aspect of the left thigh
+and calf. Pain is described as constant, worsening with ambulation,
+and relieved partially by sitting.
+
+He reports numbness and tingling in the left foot and difficulty
+walking long distances due to pain and weakness.
+
+===============================
+PAST MEDICAL HISTORY
+===============================
+- Hypertension
+- Hyperlipidemia
+
+===============================
+PAST SURGICAL HISTORY
+===============================
+- None
+
+===============================
+CONSERVATIVE MANAGEMENT
+===============================
+The patient has completed:
+- NSAID therapy (Ibuprofen 800mg TID) for 6 weeks
+- Formal physical therapy twice weekly for 6 weeks
+
+Symptoms have persisted despite adherence to therapy.
+
+===============================
+PHYSICAL EXAM
+===============================
+- Decreased left ankle reflex
+- Mild left lower extremity motor weakness (4/5)
+- Positive straight leg raise on the left
+
+===============================
+IMAGING
+===============================
+Prior lumbar spine X-rays unremarkable.
+
+===============================
+ASSESSMENT
+===============================
+Lumbar spinal stenosis with left-sided radiculopathy refractory to
+conservative management.
+
+===============================
+PLAN
+===============================
+MRI lumbar spine without contrast requested for further evaluation.

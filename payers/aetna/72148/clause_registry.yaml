@@ -22,8 +22,10 @@ approval_clauses:
     required_concepts:
       - spinal_cord_compression
       - cauda_equina_syndrome
+    logic: OR  # <-- new, optional
     expected_certainty: suspected
     minimum_confidence: weak
+    
 
   - id: AETNA_72148_C03
     name: Congenital spinal anomalies or deformities
@@ -136,6 +138,7 @@ approval_clauses:
     name: Rapid neurologic deficit or major motor weakness
     policy_text: Rapidly progressing neurological deficit or major motor weakness.
     clause_type: neurologic_emergency
+    logic: OR  # <-- new, optional
     required_concepts:
       - rapid_neurologic_decline
       - motor_weakness

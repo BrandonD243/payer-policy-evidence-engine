@@ -1,17 +1,18 @@
+# approval_api.py
 import os
 import yaml
 from typing import List
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from pydantic import BaseModel
 
 from extractors.openai_concept_extractor import extract_concepts_from_text
+from extractors.section_extractor import extract_concepts_from_sections
 from evaluators.clause_evaluator import evaluate_clauses
-
+from resolvers.concept_resolver import infer_composite_concepts
 
 # ===============================
 # Load Registries
 # ===============================
-
 CLAUSE_PATH = os.path.join("payers", "aetna", "72148", "clause_registry.yaml")
 CONCEPT_PATH = os.path.join("concepts", "concept_registry.yaml")
 
@@ -23,7 +24,6 @@ except FileNotFoundError:
 
 approval_clauses = clause_registry_raw.get("approval_clauses", [])
 exclusion_clauses = clause_registry_raw.get("exclusion_clauses", [])
-
 ALL_CLAUSES = approval_clauses + exclusion_clauses
 
 try:
@@ -38,89 +38,124 @@ RELEVANT_CONCEPTS = [
     for cid, data in concept_registry.items()
 ]
 
-
 # ===============================
 # FastAPI App
 # ===============================
-
 app = FastAPI(
     title="Payer Policy Evidence Engine",
     version="1.0",
     description="Semantic clause evaluation for CPT 72148 (MRI Lumbar Spine)"
 )
 
-
 # ===============================
 # API Models
 # ===============================
-
-class DocumentRequest(BaseModel):
-    patient_id: str
-    text: str
-
+class Evidence(BaseModel):
+    concept_id: str
+    confidence: str
+    certainty_level: str | None
+    evidence_text: str
+    section: str
 
 class ClauseEvaluation(BaseModel):
     clause_id: str
     clause_type: str
     satisfied: bool
-    matched_concepts: List[str]
-    confidence_levels: List[str]
-
+    evidence: List[Evidence]
 
 class ApprovalResponse(BaseModel):
     patient_id: str
     approval_clauses: List[ClauseEvaluation]
     exclusion_clauses: List[ClauseEvaluation]
 
-
 # ===============================
 # API Endpoint
 # ===============================
-
-@app.post("/analyze_document", response_model=ApprovalResponse)
-async def analyze_document(request: DocumentRequest):
+@app.post("/analyze_file", response_model=ApprovalResponse)
+async def analyze_file(file: UploadFile = File(...)):
     """
-    Analyze a clinical document and determine which payer policy
-    approval or exclusion clauses are satisfied.
+    Analyze an uploaded clinical document (.txt) and determine
+    which payer policy approval or exclusion clauses are satisfied.
     """
 
-    if not request.text.strip():
-        raise HTTPException(status_code=400, detail="Document text is empty")
-
-    # 1️⃣ Extract semantic concepts using OpenAI
+    # 1️⃣ Read the uploaded file as text
     try:
-        concept_mentions = extract_concepts_from_text(
-            document_text=request.text,
-            relevant_concepts=RELEVANT_CONCEPTS
+        text = (await file.read()).decode("utf-8")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to read file: {e}")
+
+    if not text.strip():
+        raise HTTPException(status_code=400, detail="Uploaded document is empty")
+
+    # 2️⃣ Extract concepts using OpenAI + Section-aware extraction
+    try:
+        concept_mentions = extract_concepts_from_sections(
+            document_text=text,
+            relevant_concepts=RELEVANT_CONCEPTS,
+            extractor_fn=extract_concepts_from_text
+        )
+
+        # 🔁 Derive higher-level composite concepts
+        derived_concepts = infer_composite_concepts(concept_mentions)
+        concept_mentions.extend(derived_concepts)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Concept extraction failed: {e}")
+
+    # 🔍 DEBUG: Inspect extracted concepts
+    print("\n=== CONCEPT MENTIONS ===")
+    for m in concept_mentions:
+        print(
+            m["concept_id"],
+            m.get("confidence"),
+            m.get("certainty_level"),
+            "|",
+            m.get("evidence_text"),
+            "| section:",
+            m.get("section")
+        )
+    print("=======================\n")
+
+    # 3️⃣ Evaluate all clauses
+    try:
+        clause_results = evaluate_clauses(
+            concept_mentions=concept_mentions,
+            clause_registry=ALL_CLAUSES
         )
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Concept extraction failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Clause evaluation failed: {e}")
 
-    # 2️⃣ Evaluate all clauses
-    clause_results = evaluate_clauses(
-        concept_mentions=concept_mentions,
-        clause_registry=ALL_CLAUSES
-    )
+    # 4️⃣ Convert evidence to Pydantic Evidence objects
+    def wrap_evidence(evidence_list):
+        wrapped = []
+        for ev in evidence_list:
+            wrapped.append(
+                Evidence(
+                    concept_id=ev.get("concept_id", ""),
+                    confidence=ev.get("confidence", "weak"),
+                    certainty_level=ev.get("certainty_level"),
+                    evidence_text=ev.get("evidence_text", ""),
+                    section=ev.get("section", "")
+                )
+            )
+        return wrapped
 
-    # 3️⃣ Split approval vs exclusion
+    # 5️⃣ Split results into approval vs exclusion clauses
     approval_results = []
     exclusion_results = []
-
     clause_lookup = {c["id"]: c for c in ALL_CLAUSES}
 
     for result in clause_results:
         clause_def = clause_lookup.get(result["clause_id"], {})
         clause_type = clause_def.get("clause_type", "exclusion")
 
+        evidence_wrapped = wrap_evidence(result.get("evidence", []))
+
         enriched = ClauseEvaluation(
             clause_id=result["clause_id"],
             clause_type=clause_type,
-            satisfied=result["satisfied"],
-            matched_concepts=result["matched_concepts"],
-            confidence_levels=result["confidence_levels"]
+            satisfied=result.get("satisfied", False),
+            evidence=evidence_wrapped
         )
 
         if clause_type == "exclusion":
@@ -128,8 +163,9 @@ async def analyze_document(request: DocumentRequest):
         else:
             approval_results.append(enriched)
 
+    # 6️⃣ Return structured response
     return ApprovalResponse(
-        patient_id=request.patient_id,
+        patient_id=file.filename,
         approval_clauses=approval_results,
         exclusion_clauses=exclusion_results
     )
@@ -138,7 +174,6 @@ async def analyze_document(request: DocumentRequest):
 # ===============================
 # Health Check
 # ===============================
-
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}

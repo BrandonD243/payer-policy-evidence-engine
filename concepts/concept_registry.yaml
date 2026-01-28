@@ -152,6 +152,11 @@ concepts:
       - motor weakness
       - sensory deficit
       - abnormal neurologic exam
+    derived_from:
+      - motor_weakness
+      - sensory_deficit
+      - decreased_reflexes
+
 
   conservative_therapy_6_weeks:
     category: treatment_history
@@ -159,6 +164,7 @@ concepts:
     therapy_indicators:
       - physical therapy
       - NSAIDs
+      - NSAID therapy
       - analgesics
       - muscle relaxants
     duration_indicators:
@@ -207,9 +213,14 @@ concepts:
     category: neurologic_finding
     definition: Decreased muscle strength.
     positive_indicators:
-      - motor weakness
-      - decreased strength
-      - paralysis
+    - motor weakness
+    - decreased strength
+    severity_signals:
+      major:
+        - 3/5
+        - 2/5
+        - profound weakness
+        - paralysis
 
   severe_back_pain:
     category: symptom_severity
@@ -217,6 +228,8 @@ concepts:
     positive_indicators:
       - severe back pain
       - intractable pain
+      - severe lumbar pain
+      - severe thoracic pain
 
   hospitalization:
     category: care_setting
@@ -263,6 +276,8 @@ concepts:
       - trauma
       - fall
       - motor vehicle accident
+      - MVC
+      - motor vehicle collision
 
   spinal_fracture:
     category: trauma
@@ -325,6 +340,19 @@ concepts:
     positive_indicators:
       - neurologically intact
       - no neurologic deficits
+    exclusion_concepts:
+      - motor_weakness
+      - objective_neurologic_deficit
+      - sensory_deficit
+
+  sensory_deficit:
+    category: neurologic_finding
+    definition: Decreased or absent sensation.
+    positive_indicators:
+      - decreased sensation
+      - numbness
+      - sensory loss
+
 
   obtunded_patient:
     category: neurologic_status
