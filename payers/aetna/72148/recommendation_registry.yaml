@@ -1,0 +1,257 @@
+version: 1.0
+description: >
+  Recommendation pathways for achieving approval of CPT 72148 (MRI Lumbar Spine)
+  when no approval clauses are currently met.
+
+recommendations:
+
+  REC_01_CONSERVATIVE_6_WEEKS:
+    linked_clause: APPROVAL_CONSERVATIVE_THERAPY_6_WEEKS
+    category: conservative_management
+    description: >
+      Complete and document at least six weeks of conservative therapy
+      prior to MRI.
+    required_concepts:
+      - conservative_therapy_6_weeks
+    actionable_steps:
+      - Initiate physical therapy
+      - Trial NSAIDs or analgesics
+      - Document duration and response
+    example_language:
+      - "Patient completed six weeks of conservative therapy without improvement."
+
+  REC_02_CONSERVATIVE_4_WEEKS:
+    linked_clause: APPROVAL_CONSERVATIVE_THERAPY_4_WEEKS
+    category: conservative_management
+    description: >
+      Complete and document at least four weeks of conservative therapy.
+    required_concepts:
+      - conservative_therapy_4_weeks
+    actionable_steps:
+      - Begin non-operative management
+      - Document symptom persistence
+    example_language:
+      - "Four weeks of conservative management failed to relieve symptoms."
+
+  REC_03_OBJECTIVE_NEURO_DEFICIT:
+    linked_clause: APPROVAL_OBJECTIVE_NEUROLOGIC_DEFICIT
+    category: neurologic_evaluation
+    description: >
+      Document objective neurologic deficits on physical examination.
+    required_concepts:
+      - objective_neurologic_deficit
+    actionable_steps:
+      - Perform detailed neurologic exam
+      - Document strength, reflexes, and sensation
+    example_language:
+      - "Exam reveals 3/5 motor weakness and sensory loss."
+
+  REC_04_MOTOR_WEAKNESS:
+    linked_clause: APPROVAL_MOTOR_WEAKNESS
+    category: neurologic_finding
+    description: >
+      Document clinically significant motor weakness.
+    required_concepts:
+      - motor_weakness
+    actionable_steps:
+      - Grade muscle strength
+      - Document asymmetry or progression
+    example_language:
+      - "Lower extremity strength reduced to 3/5."
+
+  REC_05_RADICULOPATHY:
+    linked_clause: APPROVAL_RADICULOPATHY
+    category: neurologic_symptom
+    description: >
+      Document radicular pain or nerve root symptoms.
+    required_concepts:
+      - radiculopathy
+    actionable_steps:
+      - Document dermatomal pain distribution
+    example_language:
+      - "Pain radiates down the left L5 dermatome."
+
+  REC_06_PROGRESSIVE_SYMPTOMS:
+    linked_clause: APPROVAL_PROGRESSIVE_SYMPTOMS
+    category: symptom_progression
+    description: >
+      Establish progression or worsening of symptoms over time.
+    required_concepts:
+      - progressive_symptoms
+    actionable_steps:
+      - Compare prior visits
+      - Document functional decline
+    example_language:
+      - "Symptoms have progressively worsened over the past month."
+
+  REC_07_SEVERE_BACK_PAIN:
+    linked_clause: APPROVAL_SEVERE_BACK_PAIN
+    category: symptom_severity
+    description: >
+      Document severe or intractable back pain impairing function.
+    required_concepts:
+      - severe_back_pain
+    actionable_steps:
+      - Document pain severity and functional limitation
+    example_language:
+      - "Severe lumbar pain prevents ambulation."
+
+  REC_08_TRAUMA_WITH_NEURO_DEFICIT:
+    linked_clause: APPROVAL_TRAUMA_NEUROLOGIC_DEFICIT
+    category: trauma
+    description: >
+      Document recent trauma with associated neurologic findings.
+    required_concepts:
+      - trauma
+      - objective_neurologic_deficit
+    actionable_steps:
+      - Document mechanism of injury
+      - Document neurologic exam
+    example_language:
+      - "MVC followed by bilateral lower extremity weakness."
+
+  REC_09_SPINAL_CORD_INJURY:
+    linked_clause: APPROVAL_SPINAL_CORD_INJURY
+    category: trauma
+    description: >
+      Document concern for spinal cord injury.
+    required_concepts:
+      - spinal_cord_injury
+    actionable_steps:
+      - Document neurologic findings
+      - Document imaging rationale
+    example_language:
+      - "MRI requested to evaluate suspected spinal cord injury."
+
+  REC_10_CAUSA_EQUINA:
+    linked_clause: APPROVAL_CAUSA_EQUINA
+    category: neurologic_emergency
+    description: >
+      Evaluate and document symptoms concerning for cauda equina syndrome.
+    required_concepts:
+      - cauda_equina_syndrome
+    actionable_steps:
+      - Assess bowel/bladder function
+      - Assess saddle anesthesia
+    example_language:
+      - "New urinary retention and saddle anesthesia reported."
+
+  REC_11_MYElOPATHY:
+    linked_clause: APPROVAL_MYELopathy
+    category: neurologic_condition
+    description: >
+      Document signs or symptoms of myelopathy.
+    required_concepts:
+      - myelopathy
+    actionable_steps:
+      - Assess upper motor neuron signs
+    example_language:
+      - "Exam consistent with spinal cord dysfunction."
+
+  REC_12_SPINAL_INFECTION:
+    linked_clause: APPROVAL_SPINAL_INFECTION
+    category: red_flag
+    description: >
+      Evaluate and document concern for spinal infection.
+    required_concepts:
+      - spinal_infection
+    actionable_steps:
+      - Document labs, fever, or imaging suspicion
+    example_language:
+      - "Concern for discitis based on elevated inflammatory markers."
+
+  REC_13_SPINAL_MALIGNANCY:
+    linked_clause: APPROVAL_SPINAL_MALIGNANCY
+    category: red_flag
+    description: >
+      Document known or suspected spinal malignancy.
+    required_concepts:
+      - spinal_malignancy
+    actionable_steps:
+      - Document cancer history or concerning findings
+    example_language:
+      - "Known malignancy with new back pain."
+
+  REC_14_SPINAL_METASTASES:
+    linked_clause: APPROVAL_SPINAL_METASTASES
+    category: malignancy
+    description: >
+      Document suspicion or history of metastatic disease to the spine.
+    required_concepts:
+      - spinal_metastases
+    actionable_steps:
+      - Document oncologic history
+    example_language:
+      - "History of metastatic breast cancer with spine involvement."
+
+  REC_15_SPINAL_CORD_COMPRESSION:
+    linked_clause: APPROVAL_SPINAL_CORD_COMPRESSION
+    category: neurologic_emergency
+    description: >
+      Document suspected or confirmed spinal cord compression.
+    required_concepts:
+      - spinal_cord_compression
+    actionable_steps:
+      - Document neurologic decline
+    example_language:
+      - "Concern for spinal cord compression based on exam."
+
+  REC_16_TRANSVERSE_MYELITIS:
+    linked_clause: APPROVAL_TRANSVERSE_MYELITIS
+    category: inflammatory_condition
+    description: >
+      Document concern for inflammatory spinal cord disease.
+    required_concepts:
+      - transverse_myelitis
+    actionable_steps:
+      - Document neurologic findings
+    example_language:
+      - "Suspected transverse myelitis based on exam."
+
+  REC_17_HOSPITALIZATION:
+    linked_clause: APPROVAL_HOSPITALIZED_PATIENT
+    category: care_setting
+    description: >
+      Document inpatient status or hospital admission.
+    required_concepts:
+      - hospitalization
+    actionable_steps:
+      - Document admission status
+    example_language:
+      - "Patient admitted for neurologic evaluation."
+
+  REC_18_FAILED_EPISODIC_CARE:
+    linked_clause: APPROVAL_FAILED_CONSERVATIVE_MANAGEMENT
+    category: treatment_history
+    description: >
+      Document failure of conservative or non-operative management.
+    required_concepts:
+      - conservative_management
+    actionable_steps:
+      - Document lack of response
+    example_language:
+      - "Symptoms persisted despite conservative management."
+
+  REC_19_SPINAL_FRACTURE_CONCERN:
+    linked_clause: APPROVAL_SPINAL_FRACTURE
+    category: trauma
+    description: >
+      Document concern for vertebral fracture.
+    required_concepts:
+      - spinal_fracture
+    actionable_steps:
+      - Document trauma and pain
+    example_language:
+      - "Persistent pain following trauma raises concern for fracture."
+
+  REC_20_NEUROLOGIC_DECLINE:
+    linked_clause: APPROVAL_RAPID_NEUROLOGIC_DECLINE
+    category: neurologic_emergency
+    description: >
+      Document acute or rapidly worsening neurologic decline.
+    required_concepts:
+      - rapid_neurologic_decline
+    actionable_steps:
+      - Document timeline of decline
+    example_language:
+      - "Rapid loss of motor function over 24 hours."
