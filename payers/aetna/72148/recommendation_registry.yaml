@@ -28,8 +28,8 @@ recommendations:
     required_concepts:
       - conservative_therapy_4_weeks
     actionable_steps:
-      - Begin non-operative management
-      - Document symptom persistence
+      - Add documentation pertaining to persistance of symptoms.
+    # - Begin non-operative management -> Attach documentation that indicates prior non-operative management
     example_language:
       - "Four weeks of conservative management failed to relieve symptoms."
 

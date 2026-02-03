@@ -1,0 +1,8 @@
+===============================
+PATIENT DEMOGRAPHICS
+===============================
+Name: John Doe
+DOB: 02/14/1966
+Age: 58
+Sex: Male
+MRN: 839201

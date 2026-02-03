@@ -4,7 +4,6 @@ from openai import OpenAI
 
 client = OpenAI()
 
-
 def extract_concepts_from_text(
     document_text: str,
     relevant_concepts: List[Dict],

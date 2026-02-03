@@ -1,0 +1,5 @@
+===============================
+REQUEST
+===============================
+Request for MRI-based synthetic CT (BoneMRI) for lumbar spine
+evaluation instead of standard MRI.
