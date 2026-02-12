@@ -6,6 +6,7 @@ description: >
 concepts:
 
   spinal_stenosis:
+    type: atomic
     category: diagnosis
     definition: Narrowing of the spinal canal resulting in neural compression.
     positive_indicators:
@@ -31,6 +32,7 @@ concepts:
         - may represent
 
   spinal_cord_compression:
+    type: atomic
     category: neurologic_condition
     definition: Compression of the spinal cord causing neurologic compromise.
     positive_indicators:
@@ -46,6 +48,7 @@ concepts:
         - evident on imaging
 
   cauda_equina_syndrome:
+    type: atomic
     category: neurologic_emergency
     definition: Compression of the cauda equina nerve roots.
     positive_indicators:
@@ -56,6 +59,7 @@ concepts:
       - bowel or bladder dysfunction
 
   congenital_spinal_anomaly:
+    type: atomic
     category: congenital
     definition: Congenital structural abnormality of the spine.
     positive_indicators:
@@ -65,6 +69,7 @@ concepts:
       - scoliosis since birth
 
   epidural_lipomatosis:
+    type: atomic
     category: diagnosis
     definition: Excessive fat deposition in the epidural space.
     positive_indicators:
@@ -72,6 +77,7 @@ concepts:
       - fatty overgrowth in epidural space
 
   prior_spinal_surgery:
+    type: atomic
     category: surgical_history
     definition: History of prior operative intervention on the spine.
     positive_indicators:
@@ -81,6 +87,7 @@ concepts:
       - spinal fusion
 
   recurrent_spinal_symptoms:
+    type: atomic
     category: symptom
     definition: Return or persistence of spinal symptoms after prior surgery.
     positive_indicators:
@@ -89,6 +96,7 @@ concepts:
       - worsening after surgery
 
   planned_epidural_injection:
+    type: atomic
     category: procedural_planning
     definition: Planned epidural steroid or anesthetic injection.
     positive_indicators:
@@ -97,6 +105,7 @@ concepts:
       - ESI planned
 
   spinal_malignancy:
+    type: atomic
     category: malignancy
     definition: Cancer involving the spine or spinal cord.
     positive_indicators:
@@ -105,6 +114,7 @@ concepts:
       - malignant spinal tumor
 
   spinal_infection:
+    type: atomic
     category: infection
     definition: Infectious process involving the spine or surrounding tissues.
     positive_indicators:
@@ -121,6 +131,7 @@ concepts:
         - culture proven
 
   myelopathy:
+    type: atomic
     category: neurologic_condition
     definition: Dysfunction of the spinal cord.
     positive_indicators:
@@ -129,6 +140,7 @@ concepts:
       - upper motor neuron signs
 
   spinal_cord_tumor:
+    type: atomic
     category: malignancy
     definition: Primary tumor of the spinal cord.
     positive_indicators:
@@ -136,6 +148,7 @@ concepts:
       - intramedullary tumor
 
   radiculopathy:
+    type: atomic
     category: neurologic_symptom
     definition: Pain or neurologic symptoms radiating along a nerve root.
     positive_indicators:
@@ -145,6 +158,7 @@ concepts:
       - sciatica
 
   objective_neurologic_deficit:
+    type: derived
     category: neurologic_finding
     definition: Objective abnormalities on neurologic examination.
     positive_indicators:
@@ -157,8 +171,39 @@ concepts:
       - sensory_deficit
       - decreased_reflexes
 
+  decreased_reflexes:
+    type: atomic
+    category: neurologic_finding
+    definition: Reduced deep tendon reflexes.
+    positive_indicators:
+      - decreased reflexes
+      - hyporeflexia
+
+  motor_weakness:
+    type: atomic
+    category: neurologic_finding
+    definition: Decreased muscle strength.
+    positive_indicators:
+      - motor weakness
+      - decreased strength
+    severity_signals:
+      major:
+        - 3/5
+        - 2/5
+        - profound weakness
+        - paralysis
+
+  sensory_deficit:
+    type: atomic
+    category: neurologic_finding
+    definition: Decreased or absent sensation.
+    positive_indicators:
+      - decreased sensation
+      - numbness
+      - sensory loss
 
   conservative_therapy_6_weeks:
+    type: atomic
     category: treatment_history
     definition: At least six weeks of conservative, non-operative therapy.
     therapy_indicators:
@@ -172,89 +217,8 @@ concepts:
       - 6 weeks
       - more than one month
 
-  spinal_bone_tumor:
-    category: malignancy
-    definition: Tumor involving vertebral bone.
-    positive_indicators:
-      - spinal bone tumor
-      - vertebral tumor
-
-  spinal_metastases:
-    category: malignancy
-    definition: Metastatic disease involving the spine.
-    positive_indicators:
-      - spinal metastases
-      - metastatic disease to spine
-      - vertebral metastases
-
-  progressive_symptoms:
-    category: symptom
-    definition: Symptoms worsening over time.
-    positive_indicators:
-      - progressively worsening
-      - increasing severity
-      - deterioration
-
-  conservative_management:
-    category: treatment_history
-    definition: Non-operative management of spinal symptoms.
-    positive_indicators:
-      - conservative management
-      - non-operative treatment
-
-  rapid_neurologic_decline:
-    category: neurologic_emergency
-    definition: Rapid worsening of neurologic function.
-    positive_indicators:
-      - rapidly progressing neurologic deficit
-      - acute neurologic decline
-
-  motor_weakness:
-    category: neurologic_finding
-    definition: Decreased muscle strength.
-    positive_indicators:
-    - motor weakness
-    - decreased strength
-    severity_signals:
-      major:
-        - 3/5
-        - 2/5
-        - profound weakness
-        - paralysis
-
-  severe_back_pain:
-    category: symptom_severity
-    definition: Severe spinal pain impairing function.
-    positive_indicators:
-      - severe back pain
-      - intractable pain
-      - severe lumbar pain
-      - severe thoracic pain
-
-  hospitalization:
-    category: care_setting
-    definition: Admission to a hospital.
-    positive_indicators:
-      - hospitalized
-      - admitted
-      - inpatient stay
-
-  spondylolisthesis:
-    category: diagnosis
-    definition: Forward displacement of a vertebra.
-    positive_indicators:
-      - spondylolisthesis
-      - vertebral slippage
-
-  degenerative_spine_disease:
-    category: diagnosis
-    definition: Degenerative changes of the spine.
-    positive_indicators:
-      - degenerative disc disease
-      - degenerative changes
-      - osteoarthritis of spine
-
   conservative_therapy_4_weeks:
+    type: atomic
     category: treatment_history
     definition: At least four weeks of conservative therapy.
     duration_indicators:
@@ -262,114 +226,41 @@ concepts:
       - 4 weeks
       - one month
 
-  spinal_cord_injury:
-    category: trauma
-    definition: Injury to the spinal cord.
-    positive_indicators:
-      - spinal cord injury
-      - SCI
+  symptoms_over_6_weeks:
+    type: atomic
+    category: symptom_duration
+    definition: Symptoms present longer than six weeks.
+    duration_indicators:
+      - more than six weeks
+      - over six weeks
+      - symptoms for two months
 
-  trauma:
-    category: context
-    definition: Physical injury due to external force.
+  acute_low_back_pain:
+    type: atomic
+    category: condition
     positive_indicators:
-      - trauma
-      - fall
-      - motor vehicle accident
-      - MVC
-      - motor vehicle collision
+      - acute low back pain
+      - recent onset back pain
 
-  spinal_fracture:
-    category: trauma
-    definition: Fracture of vertebral bone.
+  osteoporosis_risk:
+    type: atomic
+    category: risk_factor
+    definition: Risk factors for osteoporotic fracture.
     positive_indicators:
-      - spinal fracture
-      - vertebral fracture
+      - osteoporosis
+      - osteopenia
+      - chronic steroid use
+      - fragility fracture history
+      - low bone density
 
-  spinal_dislocation:
-    category: trauma
-    definition: Dislocation of vertebral alignment.
-    positive_indicators:
-      - spinal dislocation
-      - vertebral dislocation
-
-  transverse_myelitis:
-    category: inflammatory_condition
-    definition: Inflammation of the spinal cord.
-    positive_indicators:
-      - transverse myelitis
-      - inflammatory myelopathy
-    certainty_signals:
-      suspected:
-        - suspected
-        - might have
-        - concern for
-      confirmed:
-        - diagnosed with
-
-  bonemri:
-    category: imaging_technique
-    definition: MRI-based synthetic CT (BoneMRI).
-    positive_indicators:
-      - BoneMRI
-      - synthetic CT MRI
-
-  dynamic_kinetic_mri:
-    category: imaging_technique
-    definition: Dynamic or kinetic MRI imaging.
-    positive_indicators:
-      - dynamic MRI
-      - kinetic MRI
-
-  dual_energy_ct:
-    category: imaging_technique
-    definition: Dual-energy CT imaging.
-    positive_indicators:
-      - dual-energy CT
-
-  negative_ct:
-    category: imaging_result
-    definition: CT imaging without abnormal findings.
-    positive_indicators:
-      - negative CT
-      - normal CT
-
-  neurologically_intact:
-    category: neurologic_status
-    definition: No neurologic deficits present.
-    positive_indicators:
-      - neurologically intact
-      - no neurologic deficits
+  no_red_flags:
+    type: derived
+    category: policy_state
+    definition: Absence of red flag clinical indicators.
     exclusion_concepts:
+      - spinal_fracture
+      - spinal_malignancy
+      - spinal_infection
+      - cauda_equina_syndrome
+      - rapid_neurologic_decline
       - motor_weakness
-      - objective_neurologic_deficit
-      - sensory_deficit
-
-  sensory_deficit:
-    category: neurologic_finding
-    definition: Decreased or absent sensation.
-    positive_indicators:
-      - decreased sensation
-      - numbness
-      - sensory loss
-
-
-  obtunded_patient:
-    category: neurologic_status
-    definition: Reduced level of consciousness.
-    positive_indicators:
-      - obtunded
-      - comatose
-
-  normal_ct:
-    category: imaging_result
-    definition: CT scan without abnormal findings.
-    positive_indicators:
-      - normal CT
-
-  non_covered_indication:
-    category: policy
-    definition: Indication not covered by the policy.
-    positive_indicators:
-      - routine imaging
-      - screening only

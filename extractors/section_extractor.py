@@ -1,93 +1,43 @@
+from typing import List, Dict
+from extractors.openai_concept_extractor import extract_concepts_from_text
 import re
-from collections import defaultdict
 
-# ===============================
-# Helper: text normalization
-# ===============================
-def normalize_text(text: str) -> str:
+def normalize_section(section_text: str) -> str:
     """
-    Normalize text for better concept matching.
-    - Lowercase everything
-    - Replace common synonyms
-    - Strip extra whitespace
+    Simplify section headers to just the name in lowercase.
     """
-    text = text.lower()
-    # Synonyms or mapping
-    text = text.replace("lumbar", "back")
-    text = text.replace("thoracic", "back")
-    text = text.replace("lumbosacral", "back")
-    return text.strip()
+    if not section_text:
+        return "general"
+    
+    # Remove lines of =====, --- or whitespace, keep only text lines
+    lines = [line.strip() for line in section_text.splitlines() if line.strip()]
+    lines = [line for line in lines if not re.fullmatch(r"[=\-]{3,}", line)]
+    
+    if not lines:
+        return "general"
+    
+    # Take the first meaningful line as section name
+    return lines[0].lower()
 
-
-# ===============================
-# Split document into sections
-# ===============================
-def split_into_sections(document_text: str):
+def extract_concepts_from_sections(
+    document_text: str,
+    relevant_concepts: List[Dict],
+    extractor_fn=extract_concepts_from_text
+) -> List[Dict]:
     """
-    Split a clinical note into sections using headers like '=====' or common clinical headings.
-    Returns a list of (section_title, section_text) tuples.
+    Splits a document into sections (by headings or newlines)
+    and extracts concept mentions for each section.
     """
-    pattern = re.compile(r"^(?P<header>[A-Z _]{3,})\n[-=]{3,}\n", re.MULTILINE)
-    sections = []
-    last_idx = 0
-    last_header = "GENERAL"
 
-    for match in pattern.finditer(document_text):
-        start = match.start()
-        if start > 0:
-            section_text = document_text[last_idx:start].strip()
-            sections.append((last_header, section_text))
-        last_header = match.group("header").strip()
-        last_idx = match.end()
+    # Split the document into chunks/sections
+    sections = [s.strip() for s in document_text.split("\n\n") if s.strip()]
+    mentions: List[Dict] = []
 
-    # Add remaining text
-    sections.append((last_header, document_text[last_idx:].strip()))
-    return sections
+    for section_text in sections:
+        section_mentions = extractor_fn(section_text, relevant_concepts)
+        for m in section_mentions:
+            # Normalize the section name
+            m["section"] = normalize_section(m.get("section", section_text))
+        mentions.extend(section_mentions)
 
-
-# ===============================
-# Confidence ranking
-# ===============================
-def confidence_rank(level: str) -> int:
-    """Assign numeric ranks to confidence levels for easy comparison."""
-    rank_map = {"weak": 1, "moderate": 2, "strong": 3}
-    return rank_map.get(level.lower(), 0)
-
-
-# ===============================
-# Section-aware concept extraction
-# ===============================
-def extract_concepts_from_sections(document_text: str, relevant_concepts: list, extractor_fn):
-    """
-    Run concept extraction on each section separately, normalize text, and aggregate results.
-    - extractor_fn: a function like extract_concepts_from_text(text, relevant_concepts)
-    Returns a deduplicated list of all concept mentions with max confidence per concept.
-    """
-    sections = split_into_sections(document_text)
-    aggregated = defaultdict(lambda: {
-        "concept_id": "",
-        "confidence": "",
-        "certainty_level": "",
-        "evidence_text": "",
-        "section": ""
-    })
-
-
-    for header, text in sections:
-        if not text:
-            continue
-        # Normalize section text before extraction
-        concepts = extractor_fn(text, relevant_concepts)
-
-        for c in concepts:
-            cid = c["concept_id"]
-            current_conf = aggregated[cid]["confidence"]
-
-            if confidence_rank(c["confidence"]) > confidence_rank(current_conf):
-                aggregated[cid] = {
-                    **c,
-                    "section": header
-                }
-
-
-    return list(aggregated.values())
+    return mentions

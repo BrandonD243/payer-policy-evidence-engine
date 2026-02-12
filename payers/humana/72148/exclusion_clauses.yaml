@@ -1,0 +1,10 @@
+exclusion_clauses:
+
+  - id: HUMANA_72148_E01
+    name: Imaging for acute low back pain without red flags
+    policy_text: >
+      Imaging for acute low back pain within six weeks of symptom onset
+      is excluded in the absence of red flags.
+    exclusion_concepts:
+      - acute_low_back_pain
+      - no_red_flags

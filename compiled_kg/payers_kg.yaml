@@ -1,0 +1,344 @@
+aetna:
+  '72148':
+    approval_clauses:
+      approval_clauses:
+      - clause_type: diagnosis_based
+        expected_certainty: confirmed
+        id: AETNA_72148_C01
+        minimum_confidence: moderate
+        name: Clinical evidence of spinal stenosis
+        policy_text: Clinical evidence of spinal stenosis.
+        required_concepts:
+        - spinal_stenosis
+      - clause_type: suspicion_based
+        expected_certainty: suspected
+        id: AETNA_72148_C02
+        logic: OR
+        minimum_confidence: weak
+        name: Spinal cord or cauda equina compression
+        policy_text: Clinical suspicion of a spinal cord or cauda equina compression
+          syndrome.
+        required_concepts:
+        - spinal_cord_compression
+        - cauda_equina_syndrome
+      - clause_type: diagnosis_based
+        expected_certainty: confirmed
+        id: AETNA_72148_C03
+        minimum_confidence: moderate
+        name: Congenital spinal anomalies or deformities
+        policy_text: Congenital anomalies or deformities of the spine.
+        required_concepts:
+        - congenital_spinal_anomaly
+      - clause_type: diagnosis_based
+        expected_certainty: confirmed
+        id: AETNA_72148_C04
+        minimum_confidence: moderate
+        name: Lumbar epidural lipomatosis
+        policy_text: Diagnosis and evaluation of lumbar epidural lipomatosis.
+        required_concepts:
+        - epidural_lipomatosis
+      - clause_type: post_surgical
+        expected_certainty: confirmed
+        id: AETNA_72148_C05
+        minimum_confidence: moderate
+        name: Recurrent symptoms after spinal surgery
+        policy_text: Evaluation of recurrent symptoms after spinal surgery.
+        required_concepts:
+        - prior_spinal_surgery
+        - recurrent_spinal_symptoms
+      - clause_type: procedural_planning
+        expected_certainty: planned
+        id: AETNA_72148_C06
+        minimum_confidence: weak
+        name: Pre-epidural injection evaluation
+        optional_concepts:
+        - suspected_spinal_tumor
+        - suspected_spinal_infection
+        policy_text: 'Evaluation prior to epidural injection to rule out tumor or
+          infection and to delineate the optimal anatomical location.
+
+          '
+        required_concepts:
+        - planned_epidural_injection
+      - clause_type: follow_up
+        expected_certainty: confirmed
+        id: AETNA_72148_C07
+        minimum_confidence: moderate
+        name: Follow-up of spinal malignancy or infection
+        policy_text: Follow-up of evaluation for spinal malignancy or spinal infection.
+        required_concepts:
+        - spinal_malignancy
+        - spinal_infection
+      - clause_type: suspicion_based
+        expected_certainty: suspected
+        id: AETNA_72148_C08
+        minimum_confidence: weak
+        name: Known or suspected myelopathy
+        policy_text: 'Known or suspected myelopathy for initial diagnosis when MRI
+          of the brain is negative or symptoms mimic other spinal or brainstem lesions.
+
+          '
+        required_concepts:
+        - myelopathy
+      - clause_type: suspicion_based
+        expected_certainty: suspected
+        id: AETNA_72148_C09
+        minimum_confidence: weak
+        name: Primary spinal cord tumor
+        policy_text: Known or suspected primary spinal cord tumors.
+        required_concepts:
+        - spinal_cord_tumor
+      - clause_type: symptom_based
+        expected_certainty: confirmed
+        id: AETNA_72148_C10
+        minimum_confidence: strong
+        name: Persistent radiculopathy after conservative therapy
+        policy_text: 'Persistent back or neck pain with radiculopathy and objective
+          neurologic findings, with no improvement after 6 weeks of conservative therapy.
+
+          '
+        required_concepts:
+        - radiculopathy
+        - objective_neurologic_deficit
+        - conservative_therapy_6_weeks
+      - clause_type: suspicion_based
+        expected_certainty: suspected
+        id: AETNA_72148_C11
+        minimum_confidence: weak
+        name: Primary spinal bone tumor or metastases
+        policy_text: 'Primary spinal bone tumors or suspected vertebral, paraspinal,
+          or intraspinal metastases.
+
+          '
+        required_concepts:
+        - spinal_bone_tumor
+        - spinal_metastases
+      - clause_type: symptom_based
+        expected_certainty: confirmed
+        id: AETNA_72148_C12
+        minimum_confidence: moderate
+        name: Progressive symptoms despite conservative management
+        policy_text: Progressively severe symptoms despite conservative management.
+        required_concepts:
+        - progressive_symptoms
+        - conservative_management
+      - clause_type: neurologic_emergency
+        expected_certainty: confirmed
+        id: AETNA_72148_C13
+        logic: OR
+        minimum_confidence: strong
+        name: Rapid neurologic deficit or major motor weakness
+        policy_text: Rapidly progressing neurological deficit or major motor weakness.
+        required_concepts:
+        - rapid_neurologic_decline
+        - motor_weakness
+      - clause_type: severity_based
+        expected_certainty: confirmed
+        id: AETNA_72148_C14
+        minimum_confidence: strong
+        name: Severe back pain requiring hospitalization
+        policy_text: Severe back pain (e.g., requiring hospitalization).
+        required_concepts:
+        - severe_back_pain
+        - hospitalization
+      - clause_type: diagnosis_based
+        expected_certainty: confirmed
+        id: AETNA_72148_C15
+        minimum_confidence: moderate
+        name: Spondylolisthesis or degenerative disease after therapy
+        policy_text: 'Spondylolisthesis or degenerative disease of the spine that
+          has not responded to 4 weeks of conservative therapy.
+
+          '
+        required_concepts:
+        - spondylolisthesis
+        - degenerative_spine_disease
+        - conservative_therapy_4_weeks
+      - clause_type: suspicion_based
+        expected_certainty: suspected
+        id: AETNA_72148_C16
+        minimum_confidence: weak
+        name: Suspected spinal infection
+        policy_text: Suspected infectious process of the spine.
+        required_concepts:
+        - spinal_infection
+      - clause_type: trauma_related
+        expected_certainty: suspected
+        id: AETNA_72148_C17
+        minimum_confidence: weak
+        name: Suspected spinal cord injury due to trauma
+        policy_text: Suspected spinal cord injury secondary to trauma.
+        required_concepts:
+        - spinal_cord_injury
+        - trauma
+      - clause_type: trauma_related
+        expected_certainty: suspected
+        id: AETNA_72148_C18
+        minimum_confidence: weak
+        name: Suspected spinal fracture or dislocation
+        policy_text: 'Suspected spinal fracture or dislocation secondary to trauma
+          when plain films are not conclusive.
+
+          '
+        required_concepts:
+        - spinal_fracture
+        - spinal_dislocation
+        - trauma
+      - clause_type: suspicion_based
+        expected_certainty: suspected
+        id: AETNA_72148_C19
+        minimum_confidence: weak
+        name: Suspected transverse myelitis
+        policy_text: Suspected transverse myelitis.
+        required_concepts:
+        - transverse_myelitis
+    exclusion_clauses:
+      exclusion_clauses:
+      - exclusion_concepts:
+        - bonemri
+        id: AETNA_72148_E01
+        name: BoneMRI is experimental
+        policy_text: 'Aetna considers BoneMRI experimental, investigational, or unproven.
+
+          '
+      - exclusion_concepts:
+        - non_covered_indication
+        id: AETNA_72148_E02
+        name: Imaging for indications not listed
+        policy_text: 'MRI and CT of the spine are unproven for all other indications.
+
+          '
+      - exclusion_concepts:
+        - negative_ct
+        - neurologically_intact
+        - trauma
+        id: AETNA_72148_E03
+        name: MRI after negative CT in neurologically intact trauma
+        policy_text: 'MRI for further evaluation after a negative CT in neurologically
+          intact blunt trauma patients is not medically necessary.
+
+          '
+      - exclusion_concepts:
+        - dynamic_kinetic_mri
+        id: AETNA_72148_E04
+        name: Dynamic-kinetic MRI
+        policy_text: Dynamic-kinetic MRI is experimental.
+      - exclusion_concepts:
+        - obtunded_patient
+        - normal_ct
+        id: AETNA_72148_E05
+        name: Routine MRI after normal CT in obtunded patients
+        policy_text: 'Routine MRI after a normal CT in obtunded or comatose individuals
+          is experimental or unproven.
+
+          '
+      - exclusion_concepts:
+        - dual_energy_ct
+        id: AETNA_72148_E06
+        name: Dual-energy CT for vertebral fractures
+        policy_text: 'Dual-energy CT for evaluation of bone marrow edema or fracture
+          lines is experimental or unproven.
+
+          '
+    policy:
+      cpt_code: 72148
+      decision_logic:
+        approvals: ANY
+        exclusions_override: true
+      description: 'Aetna''s policies regarding the medical necessity of MRI and CT
+        imaging.
+
+        '
+      payer: aetna
+      policy_name: MRI and CT of the Spine
+      source: Aetna Clinical Policy Bulletin
+      version: 2024-11-01
+humana:
+  '72148':
+    approval_clauses:
+      approval_clauses:
+      - clause_type: duration_based
+        expected_certainty: confirmed
+        id: HUMANA_72148_C01
+        minimum_confidence: moderate
+        name: Low back pain lasting greater than six weeks
+        policy_text: Onset of symptoms occurred greater than six weeks ago.
+        required_concepts:
+        - symptoms_over_6_weeks
+      - clause_type: trauma_related
+        expected_certainty: suspected
+        id: HUMANA_72148_C02
+        minimum_confidence: weak
+        name: Possible fracture due to trauma
+        policy_text: Possible fracture, such as from a major trauma.
+        required_concepts:
+        - trauma
+        - spinal_fracture
+      - clause_type: trauma_related
+        expected_certainty: suspected
+        id: HUMANA_72148_C03
+        minimum_confidence: weak
+        name: Osteoporotic fracture risk
+        policy_text: Minor trauma with osteoporosis risk factors.
+        required_concepts:
+        - trauma
+        - osteoporosis_risk
+      - clause_type: red_flag
+        expected_certainty: suspected
+        id: HUMANA_72148_C04
+        logic: OR
+        minimum_confidence: weak
+        name: Tumor, cancer, or infection red flag
+        policy_text: Possible tumor, cancer, or infection.
+        required_concepts:
+        - spinal_malignancy
+        - spinal_infection
+      - clause_type: neurologic_emergency
+        expected_certainty: suspected
+        id: HUMANA_72148_C05
+        minimum_confidence: strong
+        name: Cauda equina syndrome
+        policy_text: Possible cauda equina syndrome.
+        required_concepts:
+        - cauda_equina_syndrome
+      - clause_type: neurologic_emergency
+        expected_certainty: confirmed
+        id: HUMANA_72148_C06
+        minimum_confidence: strong
+        name: Major motor weakness
+        policy_text: Major motor weakness.
+        required_concepts:
+        - motor_weakness
+      - clause_type: neurologic_emergency
+        expected_certainty: confirmed
+        id: HUMANA_72148_C07
+        minimum_confidence: moderate
+        name: Progressive neurologic symptoms
+        policy_text: Progressive neurological symptoms.
+        required_concepts:
+        - progressive_symptoms
+    exclusion_clauses:
+      exclusion_clauses:
+      - exclusion_concepts:
+        - acute_low_back_pain
+        - no_red_flags
+        id: HUMANA_72148_E01
+        name: Imaging for acute low back pain without red flags
+        policy_text: 'Imaging for acute low back pain within six weeks of symptom
+          onset is excluded in the absence of red flags.
+
+          '
+    policy:
+      cpt_code: 72148
+      decision_logic:
+        approvals: ANY
+        exclusions_override: true
+      description: 'TRICARE/Humana policy governing medical necessity of lumbar spine
+        imaging for low back pain. Imaging is approved when symptoms persist beyond
+        six weeks or when clinical red flags are present.
+
+        '
+      payer: humana
+      policy_name: Imaging for Low Back Pain
+      source: TRICARE Policy Manual Chapter 5, Section 1.1
+      version: 2024-10-30

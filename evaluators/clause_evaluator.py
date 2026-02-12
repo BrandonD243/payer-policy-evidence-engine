@@ -1,163 +1,140 @@
+from collections import defaultdict
 from typing import List, Dict
 import re
 
-# Confidence hierarchy
 CONFIDENCE_ORDER = {
     "weak": 1,
     "moderate": 2,
     "strong": 3
 }
 
-# Example: therapy concepts that require duration matching
-THERAPY_CONCEPTS = {
-    "conservative_therapy_6_weeks": {
-        "therapy_indicators": [
-            "physical therapy",
-            "NSAIDs",
-            "NSAID therapy",
-            "analgesics",
-            "muscle relaxants"
-        ],
-        "duration_indicators": [
-            "six weeks",
-            "6 weeks",
-            "more than one month"
-        ]
-    },
-    "conservative_therapy_4_weeks": {
-        "therapy_indicators": [
-            "physical therapy",
-            "NSAIDs",
-            "NSAID therapy",
-            "analgesics",
-            "muscle relaxants"
-        ],
-        "duration_indicators": [
-            "four weeks",
-            "4 weeks",
-            "one month"
-        ]
+# ---------------------------
+# Therapy concept derivation
+# ---------------------------
+def load_therapy_concepts(concept_registry: Dict) -> Dict:
+    """Load concepts that have therapy/duration indicators."""
+    return {
+        cid: c
+        for cid, c in concept_registry.items()
+        if "therapy_indicators" in c and "duration_indicators" in c
     }
-}
 
-def find_therapy_concepts(concept_mentions: List[Dict]) -> List[Dict]:
-    """
-    Scans existing concept mentions for therapy-duration indicators and
-    adds corresponding therapy concepts if matched.
-    """
-    # Collect new concept mentions
+def find_therapy_concepts(
+    concept_mentions: List[Dict],
+    concept_registry: Dict
+) -> List[Dict]:
+    """Add derived therapy-duration concepts if both therapy & duration indicators are present."""
+    therapy_concepts = load_therapy_concepts(concept_registry)
     new_mentions = []
 
     for mention in concept_mentions:
         text = mention.get("evidence_text", "").lower()
-
-        for concept_id, data in THERAPY_CONCEPTS.items():
-            # Skip if already present
-            if any(m["concept_id"] == concept_id for m in concept_mentions + new_mentions):
+        for concept_id, data in therapy_concepts.items():
+            # Skip if already added
+            if any(m.get("concept_id") == concept_id for m in concept_mentions + new_mentions):
                 continue
 
-            # Check if any therapy indicator matches (partial, case-insensitive)
-            therapy_match = any(re.search(re.escape(indicator.lower()), text) for indicator in data["therapy_indicators"])
-            duration_match = any(re.search(re.escape(dur.lower()), text) for dur in data["duration_indicators"])
+            therapy_match = any(
+                re.search(re.escape(t.lower()), text)
+                for t in data["therapy_indicators"]
+            )
+            duration_match = any(
+                re.search(re.escape(d.lower()), text)
+                for d in data["duration_indicators"]
+            )
 
             if therapy_match and duration_match:
-                # Create a new concept mention for this therapy concept
+                print("\n==== DERIVED THERAPY CONCEPT ====")
+                print("Derived concept_id:", concept_id)
+                print("From evidence_text:", mention.get("evidence_text", ""))
+                print("Section:", mention.get("section", "GENERAL"))
+                print("therapy_match:", therapy_match)
+                print("duration_match:", duration_match)
+                print("=================================\n")
+
                 new_mentions.append({
                     "concept_id": concept_id,
                     "confidence": "strong",
                     "certainty_level": "confirmed",
-                    "evidence_text": mention["evidence_text"],
+                    "evidence_text": mention.get("evidence_text", ""),
                     "section": mention.get("section", "GENERAL")
                 })
 
+
     return concept_mentions + new_mentions
 
-
+# ---------------------------
+# Clause evaluation
+# ---------------------------
 def evaluate_clauses(
     concept_mentions: List[Dict],
-    clause_registry: List[Dict]
+    clause_registry: List[Dict],
+    concept_registry: Dict
 ) -> List[Dict]:
-    """
-    Evaluates which payer policy clauses are satisfied given extracted concept mentions.
-    Supports both approval clauses and exclusion clauses.
-    Approval clauses can specify logic: AND (default) or OR.
-    """
+    """Evaluates each clause against concept mentions."""
 
-    # Step 0: enrich concept_mentions with therapy-duration concepts
-    concept_mentions = find_therapy_concepts(concept_mentions)
+    # Step 1: derive therapy-duration concepts
+    concept_mentions = find_therapy_concepts(concept_mentions, concept_registry)
+
+    # Step 2: build lookup by concept_id
+    mention_lookup = defaultdict(list)
+    for m in concept_mentions:
+        if "concept_id" in m:
+            mention_lookup[m["concept_id"]].append(m)
 
     results = []
 
-    # Build a lookup of concept mentions by concept_id
-    mention_lookup = {m["concept_id"]: m for m in concept_mentions}
-
+    # Step 3: evaluate each clause
     for clause in clause_registry:
-        clause_id = clause.get("id")
+        clause_id = clause.get("id", "unknown_clause")
         required_concepts = clause.get("required_concepts", [])
         exclusion_concepts = clause.get("exclusion_concepts", [])
         min_confidence = clause.get("minimum_confidence", "weak")
         expected_certainty = clause.get("expected_certainty")
-        min_conf_val = CONFIDENCE_ORDER[min_confidence]
+        logic = clause.get("logic", "AND").upper()
+        min_conf_val = CONFIDENCE_ORDER.get(min_confidence, 1)
 
-        # ===============================
-        # EXCLUSION CLAUSES
-        # ===============================
+        # Handle exclusions first
         if exclusion_concepts:
-            matched_evidence = []
-
+            matched = []
             for cid in exclusion_concepts:
-                mention = mention_lookup.get(cid)
-                if mention:
-                    matched_evidence.append({
-                        "concept_id": cid,
-                        "confidence": mention["confidence"],
-                        "certainty_level": mention.get("certainty_level"),
-                        "evidence_text": mention.get("evidence_text"),
-                        "section": mention.get("section")
-                    })
-
+                for m in mention_lookup.get(cid, []):
+                    if CONFIDENCE_ORDER.get(m.get("confidence", "weak"), 1) >= min_conf_val:
+                        if not expected_certainty or m.get("certainty_level") == expected_certainty:
+                            matched.append(m)
             results.append({
                 "clause_id": clause_id,
-                "satisfied": len(matched_evidence) > 0,
-                "evidence": matched_evidence
+                "satisfied": len(matched) > 0,
+                "evidence": matched
             })
             continue
 
-        # ===============================
-        # APPROVAL CLAUSES
-        # ===============================
-        matched_evidence = []
-        logic = clause.get("logic", "AND").upper()  # default AND if not specified
+        # -------------------------
+        # Approvals / required concepts
+        # -------------------------
+        clause_matched = []
 
+        # Evaluate each required concept individually
+        concept_satisfaction = []
         for cid in required_concepts:
-            mention = mention_lookup.get(cid)
-            if not mention:
-                continue  # keep going; OR logic might still succeed
+            valid_mentions = [
+                m for m in mention_lookup.get(cid, [])
+                if CONFIDENCE_ORDER.get(m.get("confidence", "weak"), 1) >= min_conf_val
+                and (not expected_certainty or m.get("certainty_level") == expected_certainty)
+            ]
+            clause_matched.extend(valid_mentions)
+            concept_satisfaction.append(len(valid_mentions) > 0)
 
-            if CONFIDENCE_ORDER[mention["confidence"]] < min_conf_val:
-                continue
-
-            if expected_certainty and mention.get("certainty_level") != expected_certainty:
-                continue
-
-            matched_evidence.append({
-                "concept_id": cid,
-                "confidence": mention["confidence"],
-                "certainty_level": mention.get("certainty_level"),
-                "evidence_text": mention.get("evidence_text"),
-                "section": mention.get("section")
-            })
-
-        # Determine satisfaction based on logic
-        if logic == "OR":
-            satisfied = len(matched_evidence) > 0
-        else:  # AND
-            satisfied = len(matched_evidence) == len(required_concepts)
+        # Determine clause satisfaction based on logic
+        if logic == "AND":
+            satisfied = all(concept_satisfaction)
+        else:  # OR
+            satisfied = any(concept_satisfaction)
 
         results.append({
             "clause_id": clause_id,
             "satisfied": satisfied,
-            "evidence": matched_evidence
+            "evidence": clause_matched
         })
 
     return results

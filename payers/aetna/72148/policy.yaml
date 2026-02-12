@@ -1,0 +1,10 @@
+cpt_code: 72148
+payer: aetna
+policy_name: MRI and CT of the Spine
+version: 2024-11-01
+source: Aetna Clinical Policy Bulletin
+description: >
+  Aetna's policies regarding the medical necessity of MRI and CT imaging.
+decision_logic:
+  approvals: ANY
+  exclusions_override: true

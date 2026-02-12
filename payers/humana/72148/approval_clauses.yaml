@@ -1,0 +1,73 @@
+approval_clauses:
+  - id: HUMANA_72148_C01
+    name: Low back pain lasting greater than six weeks
+    policy_text: Onset of symptoms occurred greater than six weeks ago.
+    clause_type: duration_based
+    required_concepts:
+      - symptoms_over_6_weeks
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+
+  - id: HUMANA_72148_C02
+    name: Possible fracture due to trauma
+    policy_text: Possible fracture, such as from a major trauma.
+    clause_type: trauma_related
+    required_concepts:
+      - trauma
+      - spinal_fracture
+    expected_certainty: suspected
+    minimum_confidence: weak
+
+
+  - id: HUMANA_72148_C03
+    name: Osteoporotic fracture risk
+    policy_text: Minor trauma with osteoporosis risk factors.
+    clause_type: trauma_related
+    required_concepts:
+      - trauma
+      - osteoporosis_risk
+    expected_certainty: suspected
+    minimum_confidence: weak
+
+
+  - id: HUMANA_72148_C04
+    name: Tumor, cancer, or infection red flag
+    policy_text: Possible tumor, cancer, or infection.
+    clause_type: red_flag
+    required_concepts:
+      - spinal_malignancy
+      - spinal_infection
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: weak
+
+
+  - id: HUMANA_72148_C05
+    name: Cauda equina syndrome
+    policy_text: Possible cauda equina syndrome.
+    clause_type: neurologic_emergency
+    required_concepts:
+      - cauda_equina_syndrome
+    expected_certainty: suspected
+    minimum_confidence: strong
+
+
+  - id: HUMANA_72148_C06
+    name: Major motor weakness
+    policy_text: Major motor weakness.
+    clause_type: neurologic_emergency
+    required_concepts:
+      - motor_weakness
+    expected_certainty: confirmed
+    minimum_confidence: strong
+
+
+  - id: HUMANA_72148_C07
+    name: Progressive neurologic symptoms
+    policy_text: Progressive neurological symptoms.
+    clause_type: neurologic_emergency
+    required_concepts:
+      - progressive_symptoms
+    expected_certainty: confirmed
+    minimum_confidence: moderate

@@ -1,0 +1,14 @@
+cpt_code: 72148
+payer: humana
+policy_name: Imaging for Low Back Pain
+version: 2024-10-30
+source: TRICARE Policy Manual Chapter 5, Section 1.1
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: true
+
+description: >
+  TRICARE/Humana policy governing medical necessity of lumbar spine imaging
+  for low back pain. Imaging is approved when symptoms persist beyond six
+  weeks or when clinical red flags are present.

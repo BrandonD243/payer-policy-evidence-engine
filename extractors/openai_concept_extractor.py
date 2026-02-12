@@ -1,4 +1,5 @@
 import json
+import re
 from typing import List, Dict
 from openai import OpenAI
 
@@ -10,15 +11,12 @@ def extract_concepts_from_text(
     model: str = "gpt-4o-mini"
 ) -> List[Dict]:
     """
-    Returns:
-    [
-        {
-            "concept_id": "spinal_stenosis",
-            "evidence_text": "Lumbar spinal stenosis with left-sided radiculopathy",
-            "confidence": "strong",
-            "certainty_level": "confirmed"
-        }
-    ]
+    Extracts concept mentions from a document text.
+    Returns a list of dicts with keys:
+    - concept_id
+    - evidence_text
+    - confidence
+    - certainty_level
     """
 
     concepts_json = json.dumps(relevant_concepts, indent=2)
@@ -70,16 +68,65 @@ CONCEPT REGISTRY:
     raw_output = response.choices[0].message.content.strip()
 
     try:
-        parsed = json.loads(raw_output)
-        mentions = parsed.get("concept_mentions", [])
+        parsed = safe_json_load(raw_output)
 
-        # Rename text_span → evidence_text
+        if not parsed or "concept_mentions" not in parsed:
+            print("⚠️ No valid concept_mentions returned")
+            return []
+
+        mentions = parsed["concept_mentions"]
+
+
+        validated_mentions = []
+
         for m in mentions:
             m["evidence_text"] = m.pop("text_span")
 
-        return mentions
+            concept_id = m.get("concept_id")
+            concept_def = next(
+                (c for c in relevant_concepts if c["id"] == concept_id),
+                None
+            )
+
+            if concept_def and indicator_match(m["evidence_text"], concept_def):
+                validated_mentions.append(m)
+            else:
+                print(f"Filtered hallucinated concept: {concept_id}")
+
+        return validated_mentions
+
 
     except json.JSONDecodeError:
         print("⚠️ OpenAI returned invalid JSON:")
         print(raw_output)
         return []
+
+def safe_json_load(text: str):
+    """
+    Cleans OpenAI responses that include ```json blocks
+    and returns parsed JSON.
+    """
+    text = text.strip()
+
+    if text.startswith("```"):
+        text = re.sub(r"^```json", "", text)
+        text = re.sub(r"^```", "", text)
+        text = re.sub(r"```$", "", text)
+        text = text.strip()
+
+def indicator_match(evidence_text: str, concept_def: Dict) -> bool:
+    """
+    Ensures evidence_text contains at least one positive indicator
+    defined in the concept registry.
+    """
+    if not evidence_text:
+        return False
+
+    evidence_text = evidence_text.lower()
+    indicators = concept_def.get("positive_indicators", [])
+
+    return any(ind.lower() in evidence_text for ind in indicators)
+
+    return json.loads(text)
+
+

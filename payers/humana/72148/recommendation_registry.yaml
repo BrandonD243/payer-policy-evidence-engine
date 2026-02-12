@@ -1,0 +1,60 @@
+version: 1.0
+description: >
+  Recommendation pathways for achieving approval of CPT 72148 under
+  Humana/TRICARE low back pain imaging policy.
+
+recommendations:
+
+  REC_HUMANA_01_WAIT_6_WEEKS:
+    linked_clause: HUMANA_72148_C01
+    category: duration
+    description: >
+      Document symptom duration greater than six weeks.
+    required_concepts:
+      - symptoms_over_6_weeks
+    actionable_steps:
+      - Document symptom onset date
+      - Document continued symptoms
+    example_language:
+      - "Low back pain has persisted for more than six weeks."
+
+
+  REC_HUMANA_02_CAUSA_EQUINA:
+    linked_clause: HUMANA_72148_C05
+    category: neurologic_emergency
+    description: >
+      Document symptoms concerning for cauda equina syndrome.
+    required_concepts:
+      - cauda_equina_syndrome
+    actionable_steps:
+      - Assess bowel/bladder function
+      - Assess saddle anesthesia
+    example_language:
+      - "Patient reports urinary retention and saddle anesthesia."
+
+
+  REC_HUMANA_03_MOTOR_WEAKNESS:
+    linked_clause: HUMANA_72148_C06
+    category: neurologic_exam
+    description: >
+      Document major motor weakness.
+    required_concepts:
+      - motor_weakness
+    actionable_steps:
+      - Perform strength exam
+      - Document grading
+    example_language:
+      - "Motor strength 3/5 in left lower extremity."
+
+
+  REC_HUMANA_04_PROGRESSIVE_NEURO:
+    linked_clause: HUMANA_72148_C07
+    category: neurologic_progression
+    description: >
+      Document progressive neurologic symptoms.
+    required_concepts:
+      - progressive_symptoms
+    actionable_steps:
+      - Document functional decline
+    example_language:
+      - "Neurologic symptoms have progressively worsened."

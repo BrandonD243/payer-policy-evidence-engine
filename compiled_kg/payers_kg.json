@@ -1,0 +1,8 @@
+{
+  "aetna": {
+    "72148": {
+      "policy": {
+        "cpt_code": 72148,
+        "payer": "aetna",
+        "policy_name": "MRI and CT of the Spine",
+        "version": 
