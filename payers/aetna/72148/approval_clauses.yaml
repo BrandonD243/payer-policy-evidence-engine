@@ -75,7 +75,7 @@ approval_clauses:
   - id: AETNA_72148_C08
     name: Known or suspected myelopathy
     policy_text: >
-      Known or suspected myelopathy for initial diagnosis when MRI of the brain
+      Known or suspected myelopathy (e.g., multiple sclerosis) for initial diagnosis when MRI of the brain
       is negative or symptoms mimic other spinal or brainstem lesions.
     clause_type: suspicion_based
     required_concepts:
@@ -85,7 +85,7 @@ approval_clauses:
 
   - id: AETNA_72148_C09
     name: Primary spinal cord tumor
-    policy_text: Known or suspected primary spinal cord tumors.
+    policy_text: Known or suspected primary spinal cord tumors (malignant or non-malignant).
     clause_type: suspicion_based
     required_concepts:
       - spinal_cord_tumor
@@ -163,7 +163,7 @@ approval_clauses:
 
   - id: AETNA_72148_C16
     name: Suspected spinal infection
-    policy_text: Suspected infectious process of the spine.
+    policy_text: Suspected infectious process (e.g., osteomyelitis epidural abscess of the spine or soft tissue).
     clause_type: suspicion_based
     required_concepts:
       - spinal_infection
@@ -181,7 +181,7 @@ approval_clauses:
     minimum_confidence: weak
 
   - id: AETNA_72148_C18
-    name: Suspected spinal fracture or dislocation
+    name: Suspected spinal fracture and/or dislocation secondary to trauma (if plain films are not conclusive);
     policy_text: >
       Suspected spinal fracture or dislocation secondary to trauma
       when plain films are not conclusive.
