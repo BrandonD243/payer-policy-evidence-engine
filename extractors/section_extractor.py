@@ -35,9 +35,15 @@ def extract_concepts_from_sections(
 
     for section_text in sections:
         section_mentions = extractor_fn(section_text, relevant_concepts)
+
         for m in section_mentions:
-            # Normalize the section name
-            m["section"] = normalize_section(m.get("section", section_text))
+            # If extractor already set a section, normalize it
+            if m.get("section"):
+                m["section"] = normalize_section(m["section"])
+            else:
+                # Do NOT infer from paragraph text
+                m["section"] = "general"
+
         mentions.extend(section_mentions)
 
     return mentions
