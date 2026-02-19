@@ -33,8 +33,8 @@ PRELOADED_CASES = {
     "patient_01_approved_stenosis": os.path.join(
         EXAMPLES_DIR, "patient_01_approved_stenosis"
     ),
-    "patient_03_denied_bonemri": os.path.join(
-        EXAMPLES_DIR, "patient_03_denied_bonemri"
+    "patient_03_denied_bone_mri": os.path.join(
+        EXAMPLES_DIR, "patient_03_denied_bone_mri"
     ),
 }
 
