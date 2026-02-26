@@ -8,6 +8,8 @@ from extractors.openai_concept_extractor import extract_concepts_from_text
 from extractors.section_extractor import extract_concepts_from_sections
 
 from evaluators.clause_evaluator import evaluate_clauses
+from evaluators.pa_required_evaluator import check_pa_required
+
 from examples.case_loader import load_case_documents
 
 from storage.case_store import (
@@ -155,6 +157,7 @@ class ApprovalResponse(BaseModel):
     case_id: str
     approval_clauses: List[ClauseEvaluation]
     exclusion_clauses: List[ClauseEvaluation]
+    pa_required: bool
 
 
 class CaseSummary(BaseModel):
@@ -184,6 +187,10 @@ class DocumentDetailResponse(BaseModel):
     created_at: str
     text: str
 
+class PARequiredResponse(BaseModel):
+    case_id: str
+    pa_required: bool
+    message: str
 
 # ===============================
 # Startup: Preload Examples
@@ -218,8 +225,24 @@ def preload_example_cases():
 # ===============================
 # Core Evaluation Logic
 # ===============================
-def evaluate_case(case_id: str, combined_text: str, payer_name: str):
+def evaluate_case(case_id: str, combined_text: str, payer_name: str, cpt_code: str):
 
+    # ===============================
+    # NEW: Check if PA is required
+    # ===============================
+    pa_required = check_pa_required(payer_name, cpt_code)
+
+    if not pa_required:
+        update_case_status(case_id, "no_pa_required")
+
+        return (
+            [],  # approval_clauses
+            []   # exclusion_clauses
+        )
+
+    # ===============================
+    # Existing medical necessity flow
+    # ===============================
     all_clauses = load_clauses(payer_name)
 
     extracted_evidence = extract_evidence_from_file(combined_text)
@@ -285,10 +308,11 @@ async def analyze_files(files: List[UploadFile] = File(...), policy_name: str = 
 
     combined_text = "\n\n".join(extracted_texts)
 
-    approval_results, exclusion_results= evaluate_case(
+    approval_results, exclusion_results = evaluate_case(
         case["case_id"],
         combined_text,
-        payer_name
+        payer_name,
+        case["cpt_code"]
     )
 
     return ApprovalResponse(
@@ -316,14 +340,47 @@ async def run_case(case_id: str, policy_name: str = "aetna"):
     approval_results, exclusion_results = evaluate_case(
         case_id,
         combined_text,
-        payer_name
+        payer_name,
+        case["cpt_code"]
     )
 
     return ApprovalResponse(
         case_id=case_id,
         approval_clauses=approval_results,
         exclusion_clauses=exclusion_results,
+        pa_required=pa_required
     )
+
+
+@app.get("/policies/{payer}/{cpt_code}/clauses")
+def get_policy_clauses(payer: str, cpt_code: str):
+    """
+    Return raw clause definitions for a payer + CPT.
+    Used by frontend for clause display.
+    """
+
+    policy_path = os.path.join(
+        "payers",
+        payer,
+        f"{cpt_code}",
+        "approval_clauses.yaml"
+    )
+
+    if not os.path.exists(policy_path):
+        raise HTTPException(
+            status_code=404,
+            detail=f"No policy found for payer={payer}, cpt={cpt_code}"
+        )
+
+    with open(policy_path, "r") as f:
+        data = yaml.safe_load(f)
+
+    return {
+        "payer": payer,
+        "cpt_code": cpt_code,
+        "approval_clauses": data.get("approval_clauses", []),
+        "exclusion_clauses": data.get("exclusion_clauses", []),
+    }
 
 
 @app.get("/cases", response_model=List[CaseSummary])
@@ -342,6 +399,7 @@ async def get_case_detail(case_id: str):
 @app.get("/documents/{document_id}", response_model=DocumentDetailResponse)
 async def get_document_endpoint(document_id: str):
     return get_document(document_id)
+
 
 
 @app.get("/health")

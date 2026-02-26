@@ -1,0 +1,10 @@
+pa_rules:
+  - rule_id: AETNA_72148_PA_REQUIRED
+    cpt_codes: ["72148"]
+    requires_pa: true
+    place_of_service: ["outpatient", "office"]
+    plan_types: ["commercial"]
+
+  - rule_id: AETNA_XRAY_NO_PA
+    cpt_codes: ["72020"]
+    requires_pa: false
