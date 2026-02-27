@@ -59,8 +59,8 @@ RELEVANT_CONCEPTS = [
 # ===============================
 # Load Clauses
 # ===============================
-def load_clauses(payer_name: str):
-    base = os.path.join(BASE_DIR, "payers", payer_name, "72148")
+def load_clauses(payer_name: str, cpt_code: str):
+    base = os.path.join(BASE_DIR, "payers", payer_name, cpt_code)
 
     approval_path = os.path.join(base, "approval_clauses.yaml")
     exclusion_path = os.path.join(base, "exclusion_clauses.yaml")
@@ -188,6 +188,7 @@ class DocumentDetailResponse(BaseModel):
     text: str
 
 class PARequiredResponse(BaseModel):
+    payer: str
     case_id: str
     pa_required: bool
     message: str
@@ -237,13 +238,14 @@ def evaluate_case(case_id: str, combined_text: str, payer_name: str, cpt_code: s
 
         return (
             [],  # approval_clauses
-            []   # exclusion_clauses
+            [],   # exclusion_clauses
+            pa_required
         )
 
     # ===============================
     # Existing medical necessity flow
     # ===============================
-    all_clauses = load_clauses(payer_name)
+    all_clauses = load_clauses(payer_name, cpt_code)
 
     extracted_evidence = extract_evidence_from_file(combined_text)
 
@@ -282,7 +284,7 @@ def evaluate_case(case_id: str, combined_text: str, payer_name: str, cpt_code: s
     satisfied = any(c.status for c in approval_results)
     update_case_status(case_id, "approved" if satisfied else "denied")
 
-    return approval_results, exclusion_results
+    return approval_results, exclusion_results, pa_required
 
 
 
@@ -308,7 +310,7 @@ async def analyze_files(files: List[UploadFile] = File(...), policy_name: str = 
 
     combined_text = "\n\n".join(extracted_texts)
 
-    approval_results, exclusion_results = evaluate_case(
+    approval_results, exclusion_results, pa_required = evaluate_case(
         case["case_id"],
         combined_text,
         payer_name,
@@ -319,6 +321,7 @@ async def analyze_files(files: List[UploadFile] = File(...), policy_name: str = 
         case_id=case["case_id"],
         approval_clauses=approval_results,
         exclusion_clauses=exclusion_results,
+        pa_required=pa_required
     )
 
 
@@ -337,7 +340,7 @@ async def run_case(case_id: str, policy_name: str = "aetna"):
 
     combined_text = "\n\n".join([doc["text"] for doc in documents])
 
-    approval_results, exclusion_results = evaluate_case(
+    approval_results, exclusion_results, pa_required = evaluate_case(
         case_id,
         combined_text,
         payer_name,
@@ -354,32 +357,46 @@ async def run_case(case_id: str, policy_name: str = "aetna"):
 
 @app.get("/policies/{payer}/{cpt_code}/clauses")
 def get_policy_clauses(payer: str, cpt_code: str):
-    """
-    Return raw clause definitions for a payer + CPT.
-    Used by frontend for clause display.
-    """
 
-    policy_path = os.path.join(
-        "payers",
-        payer,
-        f"{cpt_code}",
-        "approval_clauses.yaml"
-    )
+    base = os.path.join(BASE_DIR, "payers", payer, cpt_code)
 
-    if not os.path.exists(policy_path):
+    approval_path = os.path.join(base, "approval_clauses.yaml")
+    exclusion_path = os.path.join(base, "exclusion_clauses.yaml")
+
+    if not os.path.exists(approval_path):
         raise HTTPException(
             status_code=404,
             detail=f"No policy found for payer={payer}, cpt={cpt_code}"
         )
 
-    with open(policy_path, "r") as f:
-        data = yaml.safe_load(f)
+    with open(approval_path, "r") as f:
+        approval = yaml.safe_load(f).get("approval_clauses", [])
+
+    exclusion = []
+    if os.path.exists(exclusion_path):
+        with open(exclusion_path, "r") as f:
+            exclusion = yaml.safe_load(f).get("exclusion_clauses", [])
 
     return {
         "payer": payer,
         "cpt_code": cpt_code,
-        "approval_clauses": data.get("approval_clauses", []),
-        "exclusion_clauses": data.get("exclusion_clauses", []),
+        "approval_clauses": approval,
+        "exclusion_clauses": exclusion,
+    }
+
+@app.get("/prior-auth-required", response_model=PARequiredResponse)
+def prior_auth_required(payer: str, cpt_code: str):
+    pa_required = check_pa_required(payer.lower(), cpt_code)
+
+    return {
+        "payer": payer,
+        "cpt_code": cpt_code,
+        "pa_required": pa_required,
+        "message": (
+            "Prior authorization required"
+            if pa_required
+            else "No prior authorization required"
+        )
     }
 
 
