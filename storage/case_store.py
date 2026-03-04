@@ -5,7 +5,12 @@ from datetime import datetime
 # Simple in-memory store (swap for DB later)
 _CASES = {}
 
-def create_case(patient_name: str, payer: str, cpt_code: str):
+def create_case(
+    patient_name: str,
+    payer: str,
+    cpt_code: str,
+    status: str = "created",
+):
     case_id = str(uuid.uuid4())
     now = datetime.utcnow().isoformat()
 
@@ -14,7 +19,7 @@ def create_case(patient_name: str, payer: str, cpt_code: str):
         "patient_name": patient_name,
         "payer": payer,
         "cpt_code": cpt_code,
-        "status": "pending",
+        "status": status,
         "created_at": now,
     }
 

@@ -1,0 +1,9 @@
+coverage_rules:
+  - rule_id: HUMANA_72148_COVERED_ALL_STATES
+    match:
+      cpt_codes: ["72148"]
+
+    coverage_status: covered
+    priority: 100
+
+default_coverage_status: covered

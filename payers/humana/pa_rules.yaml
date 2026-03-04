@@ -1,11 +1,10 @@
 pa_rules:
-  - rule_id: AETNA_COMMERCIAL_72148_OUTPATIENT
-    description: Lumbar MRI requires PA for Aetna Commercial outpatient/office
+  - rule_id: HUMANA_72148_PA_REQUIRED
     priority: 100
 
     match:
       cpt_codes: ["72148"]
-      plan_types: ["commercial"]
+      plan_types: ["commercial", "medicare_advantage"]
       place_of_service: ["outpatient", "office"]
 
     requires_pa: true

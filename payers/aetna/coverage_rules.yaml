@@ -1,0 +1,10 @@
+coverage_rules:
+  - rule_id: AETNA_NY_72148_NOT_COVERED
+    match:
+      cpt_codes: ["72148"]
+      states: ["NY"]
+
+    coverage_status: non_covered
+    priority: 100
+
+default_coverage_status: covered

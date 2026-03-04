@@ -1,6 +1,6 @@
 import os
 import yaml
-from typing import List
+from typing import List, Dict, Any
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from pydantic import BaseModel
 
@@ -9,8 +9,7 @@ from extractors.section_extractor import extract_concepts_from_sections
 
 from evaluators.clause_evaluator import evaluate_clauses
 from evaluators.pa_required_evaluator import check_pa_required
-
-from examples.case_loader import load_case_documents
+from evaluators.coverage_evaluator import check_coverage
 
 from storage.case_store import (
     create_case,
@@ -29,32 +28,17 @@ from storage.document_store import (
 # Base Directories
 # ===============================
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-EXAMPLES_DIR = os.path.join(BASE_DIR, "examples")
-
-PRELOADED_CASES = {
-    "patient_01_approved_stenosis": os.path.join(
-        EXAMPLES_DIR, "patient_01_approved_stenosis"
-    ),
-    "patient_03_denied_bone_mri": os.path.join(
-        EXAMPLES_DIR, "patient_03_denied_bone_mri"
-    ),
-}
-
 CONCEPT_PATH = os.path.join(BASE_DIR, "concepts", "concept_registry.yaml")
 
 with open(CONCEPT_PATH, "r") as f:
     concept_yaml = yaml.safe_load(f)
 
-# Canonical registry used by evaluators
 concept_registry = concept_yaml["concepts"]
 
-# Extractor-ready list
 RELEVANT_CONCEPTS = [
     {"concept_id": cid, **data}
     for cid, data in concept_registry.items()
 ]
-
-
 
 # ===============================
 # Load Clauses
@@ -66,7 +50,9 @@ def load_clauses(payer_name: str, cpt_code: str):
     exclusion_path = os.path.join(base, "exclusion_clauses.yaml")
 
     if not os.path.exists(approval_path) or not os.path.exists(exclusion_path):
-        raise FileNotFoundError(f"Clauses not found for payer {payer_name}")
+        raise FileNotFoundError(
+            f"Clauses not found for payer={payer_name}, cpt={cpt_code}"
+        )
 
     with open(approval_path, "r") as f:
         approval_clauses = yaml.safe_load(f).get("approval_clauses", [])
@@ -80,9 +66,7 @@ def load_clauses(payer_name: str, cpt_code: str):
     for c in exclusion_clauses:
         c["clause_type"] = "exclusion"
 
-    all_clauses = approval_clauses + exclusion_clauses
-
-    return all_clauses
+    return approval_clauses + exclusion_clauses
 
 
 # ===============================
@@ -129,10 +113,9 @@ def wrap_matches(evidence_list):
 # ===============================
 app = FastAPI(
     title="Payer Policy Evidence Engine",
-    version="2.0",
+    version="2.3",
     description="Semantic clause evaluation for CPT 72148"
 )
-
 
 # ===============================
 # API Models
@@ -153,11 +136,13 @@ class ClauseEvaluation(BaseModel):
     missing_concepts: List[str]
     matched_concepts: List[ConceptMatch]
 
+
 class ApprovalResponse(BaseModel):
     case_id: str
     approval_clauses: List[ClauseEvaluation]
     exclusion_clauses: List[ClauseEvaluation]
     pa_required: bool
+    coverage_status: str = "covered"
 
 
 class CaseSummary(BaseModel):
@@ -187,66 +172,51 @@ class DocumentDetailResponse(BaseModel):
     created_at: str
     text: str
 
+
 class PARequiredResponse(BaseModel):
     payer: str
-    case_id: str
+    cpt_code: str
     pa_required: bool
     message: str
-
-# ===============================
-# Startup: Preload Examples
-# ===============================
-@app.on_event("startup")
-def preload_example_cases():
-    print("Preloading example cases...")
-
-    for case_name, case_path in PRELOADED_CASES.items():
-        if not os.path.exists(case_path):
-            continue
-
-        case = create_case(
-            patient_name=case_name.replace("_", " ").title(),
-            payer="aetna",
-            cpt_code="72148"
-        )
-
-        combined_text = load_case_documents(case_path)
-
-        save_document(
-            case_id=case["case_id"],
-            filename=f"{case_name}.txt",
-            text=combined_text
-        )
-
-        print(f"Loaded example case: {case_name}")
-
-    print("Example preload complete.")
 
 
 # ===============================
 # Core Evaluation Logic
 # ===============================
-def evaluate_case(case_id: str, combined_text: str, payer_name: str, cpt_code: str):
+def evaluate_case(
+    case_id: str,
+    combined_text: str,
+    payer_name: str,
+    cpt_code: str,
+    context: Dict[str, Any]
+):
 
-    # ===============================
-    # NEW: Check if PA is required
-    # ===============================
-    pa_required = check_pa_required(payer_name, cpt_code)
+    # STEP 1 — Coverage
+    coverage = check_coverage(
+        payer_name,
+        cpt_code,
+        context=context
+    )
+
+    coverage_status = coverage.get("coverage_status", "covered").lower()
+
+    if coverage_status != "covered":
+        update_case_status(case_id, f"not_covered:{coverage_status}")
+        return [], [], False, coverage_status
+
+    # STEP 2 — PA requirement
+    pa_required = check_pa_required(
+        payer_name,
+        cpt_code,
+        context=context
+    )
 
     if not pa_required:
         update_case_status(case_id, "no_pa_required")
+        return [], [], False, "covered"
 
-        return (
-            [],  # approval_clauses
-            [],   # exclusion_clauses
-            pa_required
-        )
-
-    # ===============================
-    # Existing medical necessity flow
-    # ===============================
+    # STEP 3 — Medical necessity
     all_clauses = load_clauses(payer_name, cpt_code)
-
     extracted_evidence = extract_evidence_from_file(combined_text)
 
     clause_results = evaluate_clauses(
@@ -284,51 +254,46 @@ def evaluate_case(case_id: str, combined_text: str, payer_name: str, cpt_code: s
     satisfied = any(c.status for c in approval_results)
     update_case_status(case_id, "approved" if satisfied else "denied")
 
-    return approval_results, exclusion_results, pa_required
-
+    return approval_results, exclusion_results, pa_required, "covered"
 
 
 # ===============================
 # Endpoints
 # ===============================
-@app.post("/analyze_files")
-async def analyze_files(files: List[UploadFile] = File(...), policy_name: str = "aetna"):
 
-    payer_name = policy_name.lower()
+@app.post("/upload_files")
+async def upload_files(
+    files: List[UploadFile] = File(...),
+    payer: str = "aetna",
+    cpt_code: str = "72148",
+    patient_name: str = "Unknown"
+):
+    payer_name = payer.lower()
 
     case = create_case(
-        patient_name="Unknown",
+        patient_name=patient_name,
         payer=payer_name,
-        cpt_code="72148"
+        cpt_code=cpt_code,
     )
-
-    extracted_texts = []
 
     for file in files:
         content = await file.read()
-        extracted_texts.append(content.decode("utf-8"))
+        text = content.decode("utf-8", errors="ignore")
 
-    combined_text = "\n\n".join(extracted_texts)
+        save_document(
+            case_id=case["case_id"],
+            filename=file.filename,
+            text=text
+        )
 
-    approval_results, exclusion_results, pa_required = evaluate_case(
-        case["case_id"],
-        combined_text,
-        payer_name,
-        case["cpt_code"]
-    )
-
-    return ApprovalResponse(
-        case_id=case["case_id"],
-        approval_clauses=approval_results,
-        exclusion_clauses=exclusion_results,
-        pa_required=pa_required
-    )
+    return {
+        "case_id": case["case_id"],
+        "message": "Files uploaded successfully. Run /run_case to analyze."
+    }
 
 
 @app.post("/run_case/{case_id}")
-async def run_case(case_id: str, policy_name: str = "aetna"):
-
-    payer_name = policy_name.lower()
+async def run_case(case_id: str):
 
     case = get_case(case_id)
     if not case:
@@ -338,66 +303,40 @@ async def run_case(case_id: str, policy_name: str = "aetna"):
     if not documents:
         raise HTTPException(status_code=400, detail="No documents attached")
 
-    combined_text = "\n\n".join([doc["text"] for doc in documents])
+    payer_name = case["payer"].lower()
 
-    approval_results, exclusion_results, pa_required = evaluate_case(
-        case_id,
-        combined_text,
-        payer_name,
-        case["cpt_code"]
-    )
+    context = {
+        "state": "NY",
+        "plan_type": case.get("plan_type", "commercial"),
+        "place_of_service": case.get("place_of_service", "outpatient"),
+    }
+
+    try:
+        update_case_status(case_id, "processing")
+
+        combined_text = "\n\n".join(
+            doc.get("text", "") for doc in documents
+        )
+
+        approval_results, exclusion_results, pa_required, coverage_status = evaluate_case(
+            case_id,
+            combined_text,
+            payer_name,
+            case["cpt_code"],
+            context
+        )
+
+    except Exception:
+        update_case_status(case_id, "error")
+        raise
 
     return ApprovalResponse(
         case_id=case_id,
         approval_clauses=approval_results,
         exclusion_clauses=exclusion_results,
-        pa_required=pa_required
+        pa_required=pa_required,
+        coverage_status=coverage_status,
     )
-
-
-@app.get("/policies/{payer}/{cpt_code}/clauses")
-def get_policy_clauses(payer: str, cpt_code: str):
-
-    base = os.path.join(BASE_DIR, "payers", payer, cpt_code)
-
-    approval_path = os.path.join(base, "approval_clauses.yaml")
-    exclusion_path = os.path.join(base, "exclusion_clauses.yaml")
-
-    if not os.path.exists(approval_path):
-        raise HTTPException(
-            status_code=404,
-            detail=f"No policy found for payer={payer}, cpt={cpt_code}"
-        )
-
-    with open(approval_path, "r") as f:
-        approval = yaml.safe_load(f).get("approval_clauses", [])
-
-    exclusion = []
-    if os.path.exists(exclusion_path):
-        with open(exclusion_path, "r") as f:
-            exclusion = yaml.safe_load(f).get("exclusion_clauses", [])
-
-    return {
-        "payer": payer,
-        "cpt_code": cpt_code,
-        "approval_clauses": approval,
-        "exclusion_clauses": exclusion,
-    }
-
-@app.get("/prior-auth-required", response_model=PARequiredResponse)
-def prior_auth_required(payer: str, cpt_code: str):
-    pa_required = check_pa_required(payer.lower(), cpt_code)
-
-    return {
-        "payer": payer,
-        "cpt_code": cpt_code,
-        "pa_required": pa_required,
-        "message": (
-            "Prior authorization required"
-            if pa_required
-            else "No prior authorization required"
-        )
-    }
 
 
 @app.get("/cases", response_model=List[CaseSummary])
@@ -417,6 +356,50 @@ async def get_case_detail(case_id: str):
 async def get_document_endpoint(document_id: str):
     return get_document(document_id)
 
+
+@app.get("/prior-auth-required", response_model=PARequiredResponse)
+def prior_auth_required(payer: str, cpt_code: str):
+
+    payer_name = payer.lower()
+
+    context = {
+        "state": "NY",
+        "plan_type": "commercial",
+        "place_of_service": "outpatient",
+    }
+
+    coverage = check_coverage(
+        payer_name,
+        cpt_code,
+        context=context
+    )
+
+    coverage_status = coverage.get("coverage_status", "covered").lower()
+
+    if coverage_status != "covered":
+        return {
+            "payer": payer,
+            "cpt_code": cpt_code,
+            "pa_required": False,
+            "message": f"Service is {coverage_status.replace('_', ' ')}"
+        }
+
+    pa_required = check_pa_required(
+        payer_name,
+        cpt_code,
+        context=context
+    )
+
+    return {
+        "payer": payer,
+        "cpt_code": cpt_code,
+        "pa_required": pa_required,
+        "message": (
+            "Prior authorization required"
+            if pa_required
+            else "No prior authorization required"
+        )
+    }
 
 
 @app.get("/health")
