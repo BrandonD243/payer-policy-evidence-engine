@@ -1,39 +1,30 @@
 from typing import List, Dict
 
 
-DERIVED_CONCEPTS = [
-    {
-        "concept_id": "objective_neurologic_deficit",
-        "derived_from": [
-            "motor_weakness",
-            "decreased_reflexes",
-            "sensory_deficit",
-        ],
-        "logic": "any_of",
-        "confidence": "strong",
-        "certainty_level": "confirmed",
-        "section_hint": "PHYSICAL EXAM",
-        "evidence_text_template": "Objective neurologic deficit inferred from exam findings",
-    },
-]
-
-
 def load_derived_rules(concept_registry: Dict) -> List[Dict]:
     """
-    Load derived concept rules directly from registry.
+    Load derived concept rules from the concept registry.
     """
+
     rules = []
 
     for cid, concept in concept_registry.items():
-        if concept.get("type") == "derived" and "derived_from" in concept:
-            rules.append({
-                "concept_id": cid,
-                "derived_from": concept["derived_from"],
-                "logic": concept.get("logic", "any_of"),
-                "confidence": "strong",
-                "certainty_level": "confirmed",
-                "section_hint": "INFERRED"
-            })
+
+        if concept.get("type") != "derived":
+            continue
+
+        derived_from = concept.get("derived_from")
+        if not derived_from:
+            continue
+
+        rules.append({
+            "concept_id": cid,
+            "derived_from": derived_from,
+            "logic": concept.get("logic", "all_of"),
+            "confidence": concept.get("confidence", "strong"),
+            "certainty_level": concept.get("certainty_level", "confirmed"),
+            "section_hint": "INFERRED"
+        })
 
     return rules
 
@@ -43,33 +34,53 @@ def infer_derived_concepts(
     concept_registry: Dict
 ) -> List[Dict]:
     """
-    Infers derived concepts from registry-defined rules.
+    Infers derived concepts using iterative rule evaluation
+    until no new concepts can be inferred.
     """
 
-    derived_rules = load_derived_rules(concept_registry)
+    rules = load_derived_rules(concept_registry)
 
-    inferred = []
+    # Current known concepts
     extracted_ids = {m["concept_id"] for m in concept_mentions}
 
-    for rule in derived_rules:
-        if rule["concept_id"] in extracted_ids:
-            continue
+    inferred_mentions = []
 
-        required = set(rule["derived_from"])
-        triggered = False
+    changed = True
 
-        if rule["logic"] == "any_of":
-            triggered = bool(extracted_ids & required)
-        elif rule["logic"] == "all_of":
-            triggered = required.issubset(extracted_ids)
+    while changed:
+        changed = False
 
-        if triggered:
-            inferred.append({
-                "concept_id": rule["concept_id"],
-                "confidence": rule["confidence"],
-                "certainty_level": rule["certainty_level"],
-                "evidence_text": "Derived from clinical findings",
-                "section": rule["section_hint"],
-            })
+        for rule in rules:
 
-    return concept_mentions + inferred
+            concept_id = rule["concept_id"]
+
+            # Skip if already present
+            if concept_id in extracted_ids:
+                continue
+
+            required = set(rule["derived_from"])
+
+            triggered = False
+
+            if rule["logic"] == "any_of":
+                triggered = bool(extracted_ids & required)
+
+            elif rule["logic"] == "all_of":
+                triggered = required.issubset(extracted_ids)
+
+            if triggered:
+
+                new_concept = {
+                    "concept_id": concept_id,
+                    "confidence": rule["confidence"],
+                    "certainty_level": rule["certainty_level"],
+                    "evidence_text": f"Derived from: {', '.join(required)}",
+                    "section": rule["section_hint"],
+                }
+
+                inferred_mentions.append(new_concept)
+                extracted_ids.add(concept_id)
+
+                changed = True
+
+    return concept_mentions + inferred_mentions

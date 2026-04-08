@@ -1,0 +1,34 @@
+Date: 04/12/2025
+Provider: Michael Patel, MD
+Clinic: Midtown Spine Clinic
+
+Pt: Robert Alvarez
+DOB: 03/18/1965
+MRN: 884219
+
+CC:
+LBP with R leg pain
+
+HPI:
+59 y/o male presenting with worsening low back pain for approx 5 months.
+Pain radiates down posterior R thigh into calf and occasionally into foot.
+Pt describes sharp radicular pain with intermittent numbness in lateral foot.
+
+Pain worsens with prolonged standing and walking >10 minutes.
+Sitting provides partial relief.
+
+Denies bowel or bladder incontinence.
+
+Prior treatments include NSAIDs and PT without meaningful relief.
+
+Exam:
+Antalgic gait noted.
+Straight leg raise positive on right at 35 degrees.
+Motor strength 4/5 dorsiflexion R foot.
+Decreased sensation L5 distribution.
+
+Assessment:
+Lumbar radiculopathy likely secondary to disc pathology.
+
+Plan:
+MRI lumbar spine without contrast to evaluate for nerve root compression.

@@ -1,0 +1,15 @@
+exclusion_clauses:
+
+  - clause_id: HUMANA_64640_E01
+    evidence_category: procedural_limitation
+    clause_type: exclusion
+    policy_text: Use of pulsed radiofrequency ablation is not covered.
+    required_concepts:
+      - pulsed_rfa
+
+  - clause_id: HUMANA_64640_E02
+    evidence_category: therapeutic_vs_diagnostic
+    clause_type: exclusion
+    policy_text: Occipital nerve block used as treatment (not diagnostic) is not covered.
+    required_concepts:
+      - nerve_block_as_treatment

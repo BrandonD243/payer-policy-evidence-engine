@@ -1,0 +1,44 @@
+approval_clauses:
+
+  - id: HUMANA_64640_C01
+    name: Diagnosis of occipital neuralgia
+    evidence_category: clinical_diagnosis
+    policy_text: Diagnosis of occipital neuralgia is present.
+    clause_type: diagnosis_requirement
+    required_concepts:
+      - occipital_neuralgia
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+
+  - id: HUMANA_64640_C02
+    name: Diagnostic occipital nerve block performed
+    evidence_category: diagnostic_procedure
+    policy_text: Occipital nerve block performed for diagnostic purposes.
+    clause_type: diagnostic_confirmation
+    required_concepts:
+      - nerve_block_trial
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+
+  - id: HUMANA_64640_C03
+    name: Temporary relief after nerve block
+    evidence_category: treatment_response
+    policy_text: Temporary relief of symptoms achieved after nerve block.
+    clause_type: treatment_response
+    required_concepts:
+      - temporary_relief
+    expected_certainty: confirmed
+    minimum_confidence: weak
+
+
+  - id: HUMANA_64640_C04
+    name: Relief not sustained after nerve block
+    evidence_category: treatment_response
+    policy_text: Relief from nerve block was not sustained, indicating need for further intervention.
+    clause_type: treatment_response
+    required_concepts:
+      - relief_not_sustained
+    expected_certainty: confirmed
+    minimum_confidence: weak

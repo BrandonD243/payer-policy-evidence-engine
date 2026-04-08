@@ -1,0 +1,33 @@
+===============================
+PATIENT DEMOGRAPHICS
+===============================
+Name: Alex Thompson
+Age: 35
+
+===============================
+HISTORY OF PRESENT ILLNESS
+===============================
+Three-week history of lower back pain radiating to right leg.
+
+===============================
+TREATMENT TO DATE
+===============================
+- Over-the-counter acetaminophen intermittently
+- No physical therapy initiated
+
+===============================
+PHYSICAL EXAM
+===============================
+- Mild discomfort with straight leg raise
+- No motor weakness
+- Reflexes intact
+
+===============================
+ASSESSMENT
+===============================
+Suspected lumbar radiculopathy.
+
+===============================
+PLAN
+===============================
+MRI lumbar spine requested.

@@ -1,0 +1,28 @@
+Date: 02/05/2025
+Provider: Daniel Wu MD
+
+Patient: William Chen
+Age: 61
+
+CC:
+Chronic low back pain
+
+HPI:
+Pt with longstanding hx chronic low back pain for several years.
+Pain described as dull ache across lumbar region.
+
+Symptoms unchanged recently.
+No radiation to legs.
+Denies numbness, weakness, or bowel/bladder symptoms.
+
+Exam:
+Normal gait.
+Motor strength 5/5 both lower extremities.
+Straight leg raise negative.
+
+Assessment:
+Chronic mechanical low back pain without neurologic deficit.
+
+Plan:
+Advanced imaging requested using MRI-based synthetic CT
+(BoneMRI technique) to evaluate bony structures.

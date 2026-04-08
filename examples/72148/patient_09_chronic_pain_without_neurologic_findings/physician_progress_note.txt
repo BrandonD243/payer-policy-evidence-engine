@@ -1,0 +1,28 @@
+Date: 07/02/2025
+Provider: David Rosen, MD
+
+Patient: Karen Mitchell
+DOB: 08/09/1972
+MRN: 992341
+
+CC:
+Chronic low back pain
+
+HPI:
+52 y/o female with longstanding low back pain for several years.
+Pain described as dull and aching across lumbar region. Denies
+radiation to legs. No numbness or tingling reported.
+
+Pain worsens with prolonged sitting at desk job.
+
+Exam:
+Normal gait.
+Straight leg raise negative bilaterally.
+Motor strength 5/5 both lower extremities.
+Sensation intact.
+
+Assessment:
+Chronic mechanical low back pain.
+
+Plan:
+MRI lumbar spine requested to evaluate degenerative changes.

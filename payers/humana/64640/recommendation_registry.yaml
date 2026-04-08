@@ -1,0 +1,36 @@
+version: 1.0
+description: >
+  Recommendation pathways for achieving approval of CPT 64640 under
+  Humana occipital neuralgia policy.
+
+recommendations:
+
+  REC_HUMANA_64640_01_DIAGNOSIS:
+    linked_clause: HUMANA_64640_C01
+    description: Documentation should confirm diagnosis of occipital neuralgia.
+    suggestion: Include clinical notes describing occipital nerve pain distribution and diagnosis.
+
+  REC_HUMANA_64640_02_NERVE_BLOCK:
+    linked_clause: HUMANA_64640_C02
+    description: Diagnostic nerve block must be performed and documented.
+    suggestion: Include procedure note and clearly state diagnostic intent.
+
+  REC_HUMANA_64640_03_TEMP_RELIEF:
+    linked_clause: HUMANA_64640_C03
+    description: Temporary symptom relief must be documented.
+    suggestion: Include duration and degree of relief after nerve block.
+
+  REC_HUMANA_64640_04_NOT_SUSTAINED:
+    linked_clause: HUMANA_64640_C04
+    description: Relief must not be sustained, supporting need for escalation.
+    suggestion: Document recurrence of symptoms after initial improvement.
+
+  REC_HUMANA_64640_05_NO_RFA:
+    linked_clause: HUMANA_64640_E01
+    description: Pulsed radiofrequency ablation is not covered.
+    suggestion: Avoid documenting use of pulsed RFA.
+
+  REC_HUMANA_64640_06_DIAGNOSTIC_ONLY:
+    linked_clause: HUMANA_64640_E02
+    description: Nerve block must be diagnostic, not therapeutic.
+    suggestion: Explicitly state diagnostic purpose in documentation.

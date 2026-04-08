@@ -84,7 +84,7 @@ def evaluate_clauses(concept_mentions, clause_registry, concept_registry):
     results = []
 
     for clause in clause_registry:
-        clause_id = clause.get("id", "unknown_clause")
+        clause_id = clause.get("clause_id") or clause.get("id") or "unknown_clause"
         required_concepts = clause.get("required_concepts", [])
         exclusion_concepts = clause.get("exclusion_concepts", [])
         min_confidence = as_float(clause.get("minimum_confidence", 0.0))  # ensure float

@@ -1,0 +1,15 @@
+cpt_code: 64640
+payer: humana
+policy_name: Occipital Nerve Denervation for Occipital Neuralgia
+version: 2024-10-30
+source: Humana Clinical Policy - Headache and Occipital Neuralgia Treatments
+
+decision_logic:
+  approvals: ALL
+  exclusions_override: true
+
+description: >
+  Humana policy governing medical necessity of occipital nerve denervation.
+  The procedure is considered medically necessary when all required clinical
+  criteria are met, including confirmed diagnosis and appropriate response
+  to diagnostic nerve block.

@@ -1,9 +1,13 @@
 coverage_rules:
-  - rule_id: HUMANA_72148_COVERED_ALL_STATES
+
+  - rule_id: HUMANA_72148_COVERED
     match:
       cpt_codes: ["72148"]
-
     coverage_status: covered
     priority: 100
 
-default_coverage_status: covered
+  - rule_id: HUMANA_64640_COVERED
+    match:
+      cpt_codes: ["64640"]
+    coverage_status: covered
+    priority: 100

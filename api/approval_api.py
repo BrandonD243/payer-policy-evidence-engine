@@ -1,6 +1,6 @@
 import os
 import yaml
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from pydantic import BaseModel
 
@@ -10,6 +10,10 @@ from extractors.section_extractor import extract_concepts_from_sections
 from evaluators.clause_evaluator import evaluate_clauses
 from evaluators.pa_required_evaluator import check_pa_required
 from evaluators.coverage_evaluator import check_coverage
+from evaluators.evidence_category_evaluator import group_clauses_by_evidence_category
+
+# ✅ NEW IMPORTS
+from resolvers.concept_resolver import infer_derived_concepts
 
 from storage.case_store import (
     create_case,
@@ -91,8 +95,12 @@ def extract_evidence_from_file(text: str):
 
 def compute_missing_concepts(clause_def, matched):
     required = clause_def.get("required_concepts", [])
-    matched_ids = {m.get("concept_id") for m in matched}
-    return [c for c in required if c not in matched_ids]
+    matched_ids = {
+        m.get("concept_id")
+        for m in matched
+        if m.get("concept_id")
+    }
+    return [c for c in required if c and c not in matched_ids]
 
 
 def wrap_matches(evidence_list):
@@ -108,13 +116,60 @@ def wrap_matches(evidence_list):
     ]
 
 
+# 🔥 NEW: Map extracted concepts to clause-required concepts
+def map_to_clause_concepts(concepts: list) -> list:
+
+    mapping = {
+        "conservative_therapy_6_weeks": "symptoms_over_6_weeks",
+        "conservative_therapy_4_weeks": "symptoms_over_6_weeks",
+        "failed_conservative_therapy": "symptoms_over_6_weeks",
+    }
+
+    new_concepts = list(concepts)
+
+    for c in concepts:
+
+        if c["concept_id"] in mapping:
+
+            mapped = c.copy()
+            mapped["concept_id"] = mapping[c["concept_id"]]
+
+            new_concepts.append(mapped)
+
+    return new_concepts
+
+def deduplicate_concepts(concepts: list) -> list:
+
+    seen = set()
+    unique = []
+
+    for c in concepts:
+        key = (
+            c.get("concept_id"),
+            c.get("evidence_text"),
+            c.get("section")
+        )
+
+        if key in seen:
+            continue
+
+        seen.add(key)
+        unique.append(c)
+
+    return unique
+
+
+
+#for evidence review, group satisfied/unsatisfied clauses by their evidence category (if defined) to provide more structured feedback on which types of evidence are sufficient vs insufficient. This is a more flexible approach than hardcoding specific categories in the clause definitions, while still allowing for categorization when available.    
+
+
 # ===============================
 # FastAPI App
 # ===============================
 app = FastAPI(
     title="Payer Policy Evidence Engine",
-    version="2.3",
-    description="Semantic clause evaluation for CPT 72148"
+    version="2.4",
+    description="Semantic clause evaluation for payer policies"
 )
 
 # ===============================
@@ -135,12 +190,24 @@ class ClauseEvaluation(BaseModel):
     policy_text: str
     missing_concepts: List[str]
     matched_concepts: List[ConceptMatch]
+    evidence_category: str
+
+class EvidenceClause(BaseModel):
+    clause_id: str
+    policy_text: str
+    status: bool
+
+class EvidenceCategoryReview(BaseModel):
+    evidence_category: str
+    status: str
+    clauses: List[EvidenceClause]
 
 
 class ApprovalResponse(BaseModel):
     case_id: str
+    evidence_review: List[EvidenceCategoryReview]
     approval_clauses: List[ClauseEvaluation]
-    exclusion_clauses: List[ClauseEvaluation]
+    exclusion_clauses: Optional[List[ClauseEvaluation]] = None
     pa_required: bool
     coverage_status: str = "covered"
 
@@ -180,6 +247,7 @@ class PARequiredResponse(BaseModel):
     message: str
 
 
+
 # ===============================
 # Core Evaluation Logic
 # ===============================
@@ -217,8 +285,71 @@ def evaluate_case(
 
     # STEP 3 — Medical necessity
     all_clauses = load_clauses(payer_name, cpt_code)
+
     extracted_evidence = extract_evidence_from_file(combined_text)
 
+    # ✅ Derived concept inference
+    extracted_evidence = infer_derived_concepts(
+        extracted_evidence,
+        concept_registry
+    )
+
+    extracted_evidence = deduplicate_concepts(extracted_evidence)
+
+    # 🔥 Map concepts to clause-required IDs
+    extracted_evidence = map_to_clause_concepts(extracted_evidence)
+
+    extracted_evidence = infer_derived_concepts(
+        extracted_evidence,
+        concept_registry
+    )
+
+    def filter_duration_concepts(evidence_list):
+
+        duration_terms = [
+            "week",
+            "weeks",
+            "month",
+            "months",
+            "chronic",
+            "persistent",
+            "history",
+            ">"
+        ]
+
+        therapy_terms = [
+            "therapy",
+            "physical therapy",
+            "pt",
+            "sessions",
+            "treatment",
+            "exercise",
+            "program"
+        ]
+
+        filtered = []
+
+        for ev in evidence_list:
+
+            if ev.get("concept_id") == "symptoms_over_6_weeks":
+
+                text = ev.get("evidence_text", "").lower()
+
+                # Must contain duration indicator
+                if not any(term in text for term in duration_terms):
+                    continue
+
+                # Exclude therapy duration references
+                if any(term in text for term in therapy_terms):
+                    continue
+
+            filtered.append(ev)
+
+        return filtered
+    #NEW
+    extracted_evidence = filter_duration_concepts(extracted_evidence)
+
+    # Evaluate clauses
     clause_results = evaluate_clauses(
         extracted_evidence,
         all_clauses,
@@ -228,11 +359,12 @@ def evaluate_case(
     approval_results = []
     exclusion_results = []
 
-    clause_lookup = {c["id"]: c for c in all_clauses}
+    clause_lookup = {c.get("id") or c.get("clause_id"): c for c in all_clauses}
 
     for result in clause_results:
         clause_def = clause_lookup.get(result["clause_id"], {})
         clause_type = clause_def.get("clause_type", "approval")
+        evidence_category = clause_def.get("evidence_category", "uncategorized")  # 🔥 read from YAML
 
         matched = result.get("evidence", [])
         missing = compute_missing_concepts(clause_def, matched)
@@ -243,7 +375,8 @@ def evaluate_case(
             status=result.get("satisfied", False),
             policy_text=(clause_def.get("policy_text") or "").strip(),
             missing_concepts=missing,
-            matched_concepts=wrap_matches(matched)
+            matched_concepts=wrap_matches(matched),
+            evidence_category=evidence_category  # 🔥 attach it
         )
 
         if clause_type == "exclusion":
@@ -256,16 +389,68 @@ def evaluate_case(
 
     return approval_results, exclusion_results, pa_required, "covered"
 
+def build_evidence_review(all_clauses: List[ClauseEvaluation]):
+
+    categories = {}
+
+    for clause in all_clauses:
+
+        category = clause.evidence_category or "uncategorized"
+
+        if category not in categories:
+            categories[category] = {
+                "evidence_category": category,
+                "status": "Insufficient",
+                "clauses": [],
+                "has_approval": False,
+                "has_exclusion": False
+            }
+
+        categories[category]["clauses"].append({
+            "clause_id": clause.clause_id,
+            "policy_text": clause.policy_text,
+            "status": clause.status
+        })
+
+        # Track clause results
+        if clause.clause_type == "approval" and clause.status:
+            categories[category]["has_approval"] = True
+
+        if clause.clause_type == "exclusion" and clause.status:
+            categories[category]["has_exclusion"] = True
+
+
+    # Determine final category status
+    results = []
+
+    for category_data in categories.values():
+
+        if category_data["has_exclusion"]:
+            category_data["status"] = "Insufficient"
+
+        elif category_data["has_approval"]:
+            category_data["status"] = "Sufficient"
+
+        else:
+            category_data["status"] = "Insufficient"
+
+        # Remove internal flags
+        category_data.pop("has_approval")
+        category_data.pop("has_exclusion")
+
+        results.append(category_data)
+
+    return results
+
 
 # ===============================
 # Endpoints
 # ===============================
-
 @app.post("/upload_files")
 async def upload_files(
     files: List[UploadFile] = File(...),
-    payer: str = "aetna",
-    cpt_code: str = "72148",
+    payer: str = "humana",
+    cpt_code: str = "64640",
     patient_name: str = "Unknown"
 ):
     payer_name = payer.lower()
@@ -326,17 +511,31 @@ async def run_case(case_id: str):
             context
         )
 
+        # 🔥 Filter exclusions: only include if any are triggered
+        filtered_exclusion_results = [
+            c for c in exclusion_results if c.status or len(c.matched_concepts) > 0
+        ]
+
+        all_results = approval_results + filtered_exclusion_results
+        evidence_review = build_evidence_review(all_results)
+
     except Exception:
         update_case_status(case_id, "error")
         raise
 
-    return ApprovalResponse(
-        case_id=case_id,
-        approval_clauses=approval_results,
-        exclusion_clauses=exclusion_results,
-        pa_required=pa_required,
-        coverage_status=coverage_status,
-    )
+    # 🔥 Only include `exclusion_clauses` if any remain
+    response_data = {
+        "case_id": case_id,
+        "evidence_review": evidence_review,
+        "approval_clauses": approval_results,
+        "pa_required": pa_required,
+        "coverage_status": coverage_status,
+    }
+
+    if filtered_exclusion_results:
+        response_data["exclusion_clauses"] = filtered_exclusion_results
+
+    return ApprovalResponse(**response_data)
 
 
 @app.get("/cases", response_model=List[CaseSummary])

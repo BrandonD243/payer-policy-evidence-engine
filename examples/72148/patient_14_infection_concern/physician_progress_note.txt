@@ -1,0 +1,25 @@
+Date: 04/05/2025
+Provider: Laura Benson MD
+
+Pt: Mark Stevenson
+Age: 58
+
+CC:
+Severe back pain with fever
+
+HPI:
+Pt reports worsening back pain over last 3 weeks.
+Also reports intermittent fevers and chills.
+
+Past history:
+Type 2 diabetes.
+
+Exam:
+Lumbar tenderness.
+Temp 100.8 F.
+
+Assessment:
+Concern for possible spinal infection.
+
+Plan:
+MRI lumbar spine with urgent priority.

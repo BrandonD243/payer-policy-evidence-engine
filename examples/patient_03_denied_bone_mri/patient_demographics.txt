@@ -1,5 +1,0 @@
-===============================
-PATIENT DEMOGRAPHICS
-===============================
-Name: William Chen
-Age: 61

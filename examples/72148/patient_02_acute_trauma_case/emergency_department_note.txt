@@ -1,0 +1,32 @@
+Date: 06/14/2025
+Provider: Rachel Simmons MD
+Location: Mercy General Hospital ED
+
+Patient: Maria Gonzalez
+Age: 42
+
+History:
+Pt involved in motor vehicle collision yesterday evening.
+Restrained driver, rear-ended at highway speed.
+
+Pt reports immediate onset severe low back pain.
+
+Symptoms:
+Severe lumbar pain
+Bilateral leg numbness
+Difficulty standing due to weakness
+
+Exam:
+Pt uncomfortable, guarding lumbar region.
+
+Motor strength:
+3/5 bilateral lower extremities
+
+Sensation:
+Decreased sensation L4–L5 dermatomes bilaterally.
+
+Assessment:
+Concern for possible spinal cord or nerve root injury.
+
+Plan:
+MRI lumbar spine recommended despite negative CT.

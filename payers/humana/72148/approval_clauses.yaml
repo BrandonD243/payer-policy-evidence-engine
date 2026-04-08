@@ -1,6 +1,7 @@
 approval_clauses:
   - id: HUMANA_72148_C01
     name: Low back pain lasting greater than six weeks
+    evidence_category: ordering_rationale
     policy_text: Onset of symptoms occurred greater than six weeks ago.
     clause_type: duration_based
     required_concepts:
@@ -11,6 +12,7 @@ approval_clauses:
 
   - id: HUMANA_72148_C02
     name: Possible fracture due to trauma
+    evidence_category: clinical_history
     policy_text: Possible fracture, such as from a major trauma.
     clause_type: trauma_related
     required_concepts:
@@ -22,6 +24,7 @@ approval_clauses:
 
   - id: HUMANA_72148_C03
     name: Osteoporotic fracture risk
+    evidence_category: clinical_history
     policy_text: Minor trauma with osteoporosis risk factors.
     clause_type: trauma_related
     required_concepts:
@@ -33,6 +36,7 @@ approval_clauses:
 
   - id: HUMANA_72148_C04
     name: Tumor, cancer, or infection red flag
+    evidence_category: clinical_history
     policy_text: Possible tumor, cancer, or infection.
     clause_type: red_flag
     required_concepts:
@@ -45,6 +49,7 @@ approval_clauses:
 
   - id: HUMANA_72148_C05
     name: Cauda equina syndrome
+    evidence_category: clinical_history
     policy_text: Possible cauda equina syndrome.
     clause_type: neurologic_emergency
     required_concepts:
@@ -55,6 +60,7 @@ approval_clauses:
 
   - id: HUMANA_72148_C06
     name: Major motor weakness
+    evidence_category: symptom_severity
     policy_text: Major motor weakness.
     clause_type: neurologic_emergency
     required_concepts:
@@ -65,6 +71,7 @@ approval_clauses:
 
   - id: HUMANA_72148_C07
     name: Progressive neurologic symptoms
+    evidence_category: symptom_severity
     policy_text: Progressive neurological symptoms.
     clause_type: neurologic_emergency
     required_concepts:

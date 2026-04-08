@@ -1,0 +1,11 @@
+Therapist: Jason Lee PT
+Facility: Spine Rehab Center
+
+Treatment duration:
+6 weeks
+
+Frequency:
+2x weekly
+
+Outcome:
+Persistent radicular symptoms despite therapy.

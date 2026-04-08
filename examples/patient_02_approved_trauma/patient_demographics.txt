@@ -1,6 +1,0 @@
-===============================
-PATIENT DEMOGRAPHICS
-===============================
-Name: Maria Gonzalez
-Age: 42
-Sex: Female

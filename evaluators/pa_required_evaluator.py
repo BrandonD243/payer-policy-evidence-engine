@@ -88,6 +88,7 @@ def check_pa_required(
     context = context or {}
 
     rules, default_requires_pa = load_pa_rules(payer_name)
+    print("PA RULES LOADED:", rules)
 
     cpt_code_norm = _normalize(cpt_code)
     state = _normalize(context.get("state"))

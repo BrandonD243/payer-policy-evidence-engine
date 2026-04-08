@@ -1,9 +1,20 @@
 pa_rules:
+
   - rule_id: HUMANA_72148_PA_REQUIRED
     priority: 100
 
     match:
       cpt_codes: ["72148"]
+      plan_types: ["commercial", "medicare_advantage"]
+      place_of_service: ["outpatient", "office"]
+
+    requires_pa: true
+
+  - rule_id: HUMANA_64640_PA_REQUIRED
+    priority: 100
+
+    match:
+      cpt_codes: ["64640"]
       plan_types: ["commercial", "medicare_advantage"]
       place_of_service: ["outpatient", "office"]
 
