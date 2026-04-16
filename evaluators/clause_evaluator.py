@@ -12,6 +12,14 @@ def as_float(value, default=0.0):
         return float(value)
     except (ValueError, TypeError):
         return default
+    
+def aggregate_confidence(mentions: List[Dict]) -> float:
+    """Average confidence of supporting mentions."""
+    if not mentions:
+        return 0.0
+
+    scores = [as_float(m.get("confidence", 0.0)) for m in mentions]
+    return round(sum(scores) / len(scores), 3)
 
 # ---------------------------
 # Therapy concept derivation
@@ -71,6 +79,22 @@ def find_therapy_concepts(
 # ---------------------------
 # Clause evaluation
 # ---------------------------
+def determine_clause_status(satisfied: bool, satisfied_count: int, total_required: int, logic: str) -> str:
+    if logic == "OR":
+        return "satisfied" if satisfied else "unsatisfied"
+
+    if total_required == 0:
+        return "satisfied" if satisfied else "unsatisfied"
+
+    if satisfied_count == 0:
+        return "unsatisfied"
+
+    if satisfied_count >= total_required:
+        return "satisfied"
+
+    return "partial"
+
+
 def evaluate_clauses(concept_mentions, clause_registry, concept_registry):
     # derive therapy concepts
     concept_mentions = find_therapy_concepts(concept_mentions, concept_registry)
@@ -94,17 +118,21 @@ def evaluate_clauses(concept_mentions, clause_registry, concept_registry):
         # Handle exclusions
         # -------------------
         if exclusion_concepts:
-            matched = []
+            clause_matched = []
             for cid in exclusion_concepts:
                 for m in mention_lookup.get(cid, []):
                     conf = as_float(m.get("confidence", 0.0))
                     if conf >= min_confidence:
-                        matched.append(m)
+                        clause_matched.append(m)
+
+            satisfied = len(clause_matched) > 0
+            status = "satisfied" if satisfied else "unsatisfied"
 
             results.append({
                 "clause_id": clause_id,
-                "satisfied": len(matched) > 0,
-                "evidence": matched
+                "satisfied": satisfied,
+                "status": status,
+                "evidence": clause_matched
             })
             continue
 
@@ -118,17 +146,25 @@ def evaluate_clauses(concept_mentions, clause_registry, concept_registry):
             valid_mentions = []
             for m in mention_lookup.get(cid, []):
                 conf = as_float(m.get("confidence", 0.0))
-                if conf >= min_confidence:
+                status = m.get("status", "present")
+
+                if status == "present" and conf >= min_confidence:
+                    valid_mentions.append(m)
+
+                elif status == "partial" and conf >= (min_confidence * 0.8):
                     valid_mentions.append(m)
 
             clause_matched.extend(valid_mentions)
             concept_satisfaction.append(len(valid_mentions) > 0)
 
+        satisfied_count = sum(concept_satisfaction)
         satisfied = all(concept_satisfaction) if logic == "AND" else any(concept_satisfaction)
+        clause_status = determine_clause_status(satisfied, satisfied_count, len(required_concepts), logic)
 
         results.append({
             "clause_id": clause_id,
             "satisfied": satisfied,
+            "status": clause_status,
             "evidence": clause_matched
         })
 

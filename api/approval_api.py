@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import os
 import yaml
 from typing import List, Dict, Any, Optional
 from fastapi import FastAPI, HTTPException, UploadFile, File
+from openai import OpenAI
 from pydantic import BaseModel
 
 from extractors.openai_concept_extractor import extract_concepts_from_text
@@ -38,6 +41,7 @@ with open(CONCEPT_PATH, "r") as f:
     concept_yaml = yaml.safe_load(f)
 
 concept_registry = concept_yaml["concepts"]
+openai_client = OpenAI()
 
 RELEVANT_CONCEPTS = [
     {"concept_id": cid, **data}
@@ -116,6 +120,58 @@ def wrap_matches(evidence_list):
     ]
 
 
+def generate_case_summary(
+    case_id: str,
+    payer_name: str,
+    cpt_code: str,
+    pa_required: bool,
+    coverage_status: str,
+    approval_results: List[ClauseEvaluation],
+    exclusion_results: List[ClauseEvaluation],
+    evidence_review: List[Dict[str, Any]]
+) -> str:
+    clause_statuses = [
+        f"{c.clause_id}: {c.status}" for c in approval_results + exclusion_results
+    ]
+    categories = [
+        f"{cat['evidence_category']}: {cat['status']}" for cat in evidence_review
+    ]
+
+    prompt = f"""
+You are a clinical review assistant.
+
+Summarize the overall approval decision for a prior authorization case using the policy clause evaluation results.
+
+Respond in one or two short sentences. Mention whether the case appears approved, denied, or partially supported, and cite the main evidence category status.
+
+Case ID: {case_id}
+Payer: {payer_name}
+CPT code: {cpt_code}
+Coverage status: {coverage_status}
+Prior authorization required: {pa_required}
+Approval clause results: {', '.join(clause_statuses) if clause_statuses else 'none'}
+Evidence categories: {', '.join(categories) if categories else 'none'}
+
+Summary:
+"""
+    try:
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You write concise clinical decision summaries."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0
+        )
+        return response.choices[0].message.content.strip()
+    except Exception:
+        if any(c.status == "satisfied" for c in approval_results):
+            return "The case has sufficient evidence for approval based on satisfied approval clauses."
+        if any(c.status == "partial" for c in approval_results):
+            return "The case has partial evidence and may require additional support before approval."
+        return "The case is not supported for approval based on the current evidence."
+
+
 # 🔥 NEW: Map extracted concepts to clause-required concepts
 def map_to_clause_concepts(concepts: list) -> list:
 
@@ -186,7 +242,7 @@ class ConceptMatch(BaseModel):
 class ClauseEvaluation(BaseModel):
     clause_id: str
     clause_type: str
-    status: bool
+    status: str
     policy_text: str
     missing_concepts: List[str]
     matched_concepts: List[ConceptMatch]
@@ -195,7 +251,7 @@ class ClauseEvaluation(BaseModel):
 class EvidenceClause(BaseModel):
     clause_id: str
     policy_text: str
-    status: bool
+    status: str
 
 class EvidenceCategoryReview(BaseModel):
     evidence_category: str
@@ -210,6 +266,7 @@ class ApprovalResponse(BaseModel):
     exclusion_clauses: Optional[List[ClauseEvaluation]] = None
     pa_required: bool
     coverage_status: str = "covered"
+    evaluation_summary: str
 
 
 class CaseSummary(BaseModel):
@@ -369,14 +426,17 @@ def evaluate_case(
         matched = result.get("evidence", [])
         missing = compute_missing_concepts(clause_def, matched)
 
+        clause_status = result.get("status", "unsatisfied")
+        matched_concepts = wrap_matches(matched)
+
         enriched = ClauseEvaluation(
             clause_id=result["clause_id"],
             clause_type=clause_type,
-            status=result.get("satisfied", False),
+            status=clause_status,
             policy_text=(clause_def.get("policy_text") or "").strip(),
             missing_concepts=missing,
-            matched_concepts=wrap_matches(matched),
-            evidence_category=evidence_category  # 🔥 attach it
+            matched_concepts=matched_concepts,
+            evidence_category=evidence_category
         )
 
         if clause_type == "exclusion":
@@ -384,7 +444,7 @@ def evaluate_case(
         else:
             approval_results.append(enriched)
 
-    satisfied = any(c.status for c in approval_results)
+    satisfied = any(c.status == "satisfied" for c in approval_results)
     update_case_status(case_id, "approved" if satisfied else "denied")
 
     return approval_results, exclusion_results, pa_required, "covered"
@@ -403,6 +463,7 @@ def build_evidence_review(all_clauses: List[ClauseEvaluation]):
                 "status": "Insufficient",
                 "clauses": [],
                 "has_approval": False,
+                "has_partial": False,
                 "has_exclusion": False
             }
 
@@ -413,10 +474,13 @@ def build_evidence_review(all_clauses: List[ClauseEvaluation]):
         })
 
         # Track clause results
-        if clause.clause_type == "approval" and clause.status:
-            categories[category]["has_approval"] = True
+        if clause.clause_type == "approval":
+            if clause.status == "satisfied":
+                categories[category]["has_approval"] = True
+            elif clause.status == "partial":
+                categories[category]["has_partial"] = True
 
-        if clause.clause_type == "exclusion" and clause.status:
+        if clause.clause_type == "exclusion" and clause.status == "satisfied":
             categories[category]["has_exclusion"] = True
 
 
@@ -431,11 +495,15 @@ def build_evidence_review(all_clauses: List[ClauseEvaluation]):
         elif category_data["has_approval"]:
             category_data["status"] = "Sufficient"
 
+        elif category_data["has_partial"]:
+            category_data["status"] = "Partially sufficient"
+
         else:
             category_data["status"] = "Insufficient"
 
         # Remove internal flags
         category_data.pop("has_approval")
+        category_data.pop("has_partial")
         category_data.pop("has_exclusion")
 
         results.append(category_data)
@@ -513,7 +581,7 @@ async def run_case(case_id: str):
 
         # 🔥 Filter exclusions: only include if any are triggered
         filtered_exclusion_results = [
-            c for c in exclusion_results if c.status or len(c.matched_concepts) > 0
+            c for c in exclusion_results if c.status or c.matched_concepts
         ]
 
         all_results = approval_results + filtered_exclusion_results
@@ -523,6 +591,17 @@ async def run_case(case_id: str):
         update_case_status(case_id, "error")
         raise
 
+    case_summary = generate_case_summary(
+        case_id=case_id,
+        payer_name=payer_name,
+        cpt_code=case["cpt_code"],
+        pa_required=pa_required,
+        coverage_status=coverage_status,
+        approval_results=approval_results,
+        exclusion_results=filtered_exclusion_results,
+        evidence_review=evidence_review
+    )
+
     # 🔥 Only include `exclusion_clauses` if any remain
     response_data = {
         "case_id": case_id,
@@ -530,8 +609,9 @@ async def run_case(case_id: str):
         "approval_clauses": approval_results,
         "pa_required": pa_required,
         "coverage_status": coverage_status,
+        "evaluation_summary": case_summary
     }
-
+    # Only include exclusions if any evidence exists    
     if filtered_exclusion_results:
         response_data["exclusion_clauses"] = filtered_exclusion_results
 

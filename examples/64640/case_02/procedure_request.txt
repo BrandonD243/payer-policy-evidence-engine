@@ -1,0 +1,5 @@
+REQUEST
+Occipital nerve radiofrequency ablation requested for treatment of occipital neuralgia.
+
+NOTE
+No prior diagnostic nerve block documented.

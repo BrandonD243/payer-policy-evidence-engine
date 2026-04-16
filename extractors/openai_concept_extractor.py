@@ -12,10 +12,6 @@ def extract_concepts_from_text(
     relevant_concepts: List[Dict],
     model: str = "gpt-4o-mini"
 ) -> List[Dict]:
-    """
-    Extract concept mentions using LLM, returning numeric confidence and categorical certainty_level.
-    Confidence is a float between 0.0 and 1.0 based on evidence strength.
-    """
 
     if not document_text:
         return []
@@ -23,29 +19,46 @@ def extract_concepts_from_text(
     concepts_json = json.dumps(relevant_concepts, indent=2)
 
     prompt = f"""
-You are a clinical text analysis engine.
+You are a clinical evidence evaluation engine used for prior authorization review.
 
 TASK:
-Identify mentions of the following medical concepts in the document.
+Evaluate whether the document provides evidence supporting each medical concept.
 
 RULES:
 - Only extract text that explicitly supports a concept.
 - Ignore negated mentions.
 - Use exact text spans from the document.
-- Assign:
-  - confidence as a decimal float between 0.01 and 0.99 based on strength of evidence:
-  - certainty_level: confirmed | suspected | planned
-- Output valid JSON only.
-- Do NOT hallucinate concepts. Only extract concepts with supporting evidence.
+- Determine the level of support for the concept.
+
+STATUS DEFINITIONS:
+present → clear evidence supporting the concept
+partial → concept suggested but evidence incomplete
+missing → concept mentioned but insufficient evidence
+
+Also assign:
+
+confidence:
+0.01–0.99 reflecting evidence strength
+
+certainty_level:
+confirmed | suspected | planned
+
+reasoning:
+short explanation of why the evidence supports the concept
+
+Return VALID JSON only.
 
 OUTPUT FORMAT:
+
 {{
   "concept_mentions": [
     {{
       "concept_id": "<concept_id>",
       "text_span": "<exact quote>",
-      "confidence": <decimal float between 0.01 and 0.99>,
-      "certainty_level": "confirmed | suspected | planned"
+      "status": "present | partial | missing",
+      "confidence": <decimal>,
+      "certainty_level": "confirmed | suspected | planned",
+      "reasoning": "<short explanation>"
     }}
   ]
 }}
@@ -78,6 +91,9 @@ CONCEPT REGISTRY:
         validated_mentions = []
 
         for m in mentions:
+
+            if m.get("status") == "missing":
+                continue
             concept_id = m.get("concept_id")
             text_span = m.get("text_span")
             confidence = m.get("confidence")
@@ -119,8 +135,10 @@ CONCEPT REGISTRY:
                 validated_mentions.append({
                     "concept_id": concept_id,
                     "evidence_text": text_span,
-                    "confidence": min(max(confidence, 0.0), 1.0),  # clamp to [0.0, 1.0]
-                    "certainty_level": m.get("certainty_level", "confirmed")
+                    "confidence": min(max(confidence, 0.0), 1.0),
+                    "certainty_level": m.get("certainty_level", "confirmed"),
+                    "status": m.get("status", "present"),
+                    "reasoning": m.get("reasoning", "")
                 })
             else:
                 print(f"Filtered hallucinated concept: {concept_id}")

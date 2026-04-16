@@ -506,9 +506,7 @@ concepts:
       - mildly positive straight leg raise
       - slr mildly positive
       - straight leg raise mildly positive
-
-concepts:
-
+      
   occipital_neuralgia:
     type: atomic
     category: diagnosis
