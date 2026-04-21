@@ -16,8 +16,7 @@ approval_clauses:
     policy_text: Possible fracture, such as from a major trauma.
     clause_type: trauma_related
     required_concepts:
-      - trauma
-      - spinal_fracture
+      - possible_spinal_fracture
     expected_certainty: suspected
     minimum_confidence: weak
 
@@ -28,7 +27,7 @@ approval_clauses:
     policy_text: Minor trauma with osteoporosis risk factors.
     clause_type: trauma_related
     required_concepts:
-      - trauma
+      - minor_trauma
       - osteoporosis_risk
     expected_certainty: suspected
     minimum_confidence: weak
@@ -40,7 +39,7 @@ approval_clauses:
     policy_text: Possible tumor, cancer, or infection.
     clause_type: red_flag
     required_concepts:
-      - spinal_malignancy
+      - malignancy_imaging_indication
       - spinal_infection
     logic: OR
     expected_certainty: suspected
@@ -64,7 +63,7 @@ approval_clauses:
     policy_text: Major motor weakness.
     clause_type: neurologic_emergency
     required_concepts:
-      - motor_weakness
+      - motor_weakness_major
     expected_certainty: confirmed
     minimum_confidence: strong
 
@@ -75,6 +74,6 @@ approval_clauses:
     policy_text: Progressive neurological symptoms.
     clause_type: neurologic_emergency
     required_concepts:
-      - progressive_symptoms
+      - progressive_neurologic_symptoms
     expected_certainty: confirmed
     minimum_confidence: moderate

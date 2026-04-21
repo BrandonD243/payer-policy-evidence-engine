@@ -1,6 +1,24 @@
 from typing import List, Dict
 
 
+def normalize_confidence(confidence):
+    if isinstance(confidence, (int, float)):
+        return float(confidence)
+    if isinstance(confidence, str):
+        key = confidence.strip().lower()
+        if key == "strong":
+            return 0.9
+        if key == "moderate":
+            return 0.7
+        if key == "weak":
+            return 0.5
+        try:
+            return float(key)
+        except ValueError:
+            return 0.0
+    return 0.0
+
+
 def load_derived_rules(concept_registry: Dict) -> List[Dict]:
     """
     Load derived concept rules from the concept registry.
@@ -21,7 +39,7 @@ def load_derived_rules(concept_registry: Dict) -> List[Dict]:
             "concept_id": cid,
             "derived_from": derived_from,
             "logic": concept.get("logic", "all_of"),
-            "confidence": concept.get("confidence", "strong"),
+            "confidence": normalize_confidence(concept.get("confidence", "strong")),
             "certainty_level": concept.get("certainty_level", "confirmed"),
             "section_hint": "INFERRED"
         })

@@ -1,33 +1,42 @@
-===============================
-PATIENT DEMOGRAPHICS
-===============================
-Name: Alex Thompson
-Age: 35
+Date: 04/03/2025
+Provider: Michael Patel, MD
+Clinic: Midtown Spine & Orthopedics
 
-===============================
-HISTORY OF PRESENT ILLNESS
-===============================
-Three-week history of lower back pain radiating to right leg.
+Patient: John Doe
+DOB: 02/14/1966
+MRN: 839201
 
-===============================
-TREATMENT TO DATE
-===============================
-- Over-the-counter acetaminophen intermittently
-- No physical therapy initiated
+CC:
+Low back pain radiating to L leg
 
-===============================
-PHYSICAL EXAM
-===============================
-- Mild discomfort with straight leg raise
-- No motor weakness
-- Reflexes intact
+HPI:
+58 y/o male presenting with approx 4 month hx of progressive low back pain.
+Pain radiates down posterior aspect of L thigh into calf and occasionally
+into lateral foot.
 
-===============================
-ASSESSMENT
-===============================
-Suspected lumbar radiculopathy.
+Pt describes pain as sharp/burning with intermittent numbness and tingling.
+Worse with prolonged standing or walking >10–15 minutes. Sitting provides
+partial relief.
 
-===============================
-PLAN
-===============================
-MRI lumbar spine requested.
+Pt notes increasing difficulty walking longer distances due to leg pain
+and weakness.
+
+Denies bowel/bladder changes.
+
+PMH:
+HTN
+Hyperlipidemia
+
+Exam:
+Antalgic gait.
+Straight leg raise positive on left at ~40 degrees.
+Motor strength 4/5 left ankle dorsiflexion.
+Decreased left ankle reflex.
+Sensation mildly reduced in L5 distribution.
+
+Assessment:
+Lumbar spinal stenosis with left-sided radiculopathy.
+
+Plan:
+MRI lumbar spine without contrast to evaluate degree of stenosis
+and possible nerve root compression.

@@ -7,5 +7,5 @@ exclusion_clauses:
       Imaging for acute low back pain within six weeks of symptom onset
       is excluded in the absence of red flags.
     required_concepts:
-      - acute_low_back_pain
+      - acute_low_back_pain_episode
       - no_red_flags

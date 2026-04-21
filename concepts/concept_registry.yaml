@@ -48,25 +48,21 @@ concepts:
         - evident on imaging
 
   cauda_equina_syndrome:
-    type: atomic
+    type: derived
     category: neurologic_emergency
-    definition: Compression of the cauda equina nerve roots.
+    logic: any_of
+    definition: Compression of the cauda equina nerve roots causing bowel, bladder, or saddle sensory dysfunction.
     positive_indicators:
       - cauda equina syndrome
       - compression of cauda equina
-    supporting_findings:
-      - saddle anesthesia
-      - bowel or bladder dysfunction
-      - bilateral lower extremity weakness
-      - bilateral lower extremity numbness
-      - difficulty walking or standing due to weakness
-      - inability to rise from chair
-      - lower extremity motor deficit
-      - lower extremity sensory deficit
     derived_from:
-      - motor_weakness
-      - sensory_deficit
+      - saddle_anesthesia
+      - bowel_dysfunction
+      - bladder_dysfunction
+      - urinary_retention
+    supporting_findings:
       - bilateral_lower_extremity_symptoms
+      - motor_weakness_major
 
   congenital_spinal_anomaly:
     type: atomic
@@ -122,6 +118,38 @@ concepts:
       - spinal malignancy
       - spinal cancer
       - malignant spinal tumor
+
+  cancer_history:
+    type: atomic
+    category: risk_factor
+    definition: History of cancer that may involve the spine.
+    positive_indicators:
+      - history of cancer
+      - prior cancer
+      - prostate cancer
+      - breast cancer
+      - lung cancer
+      - metastatic disease
+      - cancer history
+
+  spinal_malignancy_risk:
+    type: derived
+    category: malignancy
+    logic: any_of
+    definition: Risk factors for spinal malignancy requiring imaging.
+    derived_from:
+      - spinal_malignancy
+      - cancer_history
+
+  malignancy_imaging_indication:
+    type: derived
+    category: imaging_indication
+    logic: any_of
+    definition: Clinical indication for imaging due to cancer risk
+    derived_from:
+      - spinal_malignancy
+      - cancer_history
+      - spinal_malignancy_risk
 
   spinal_infection:
     type: atomic
@@ -186,6 +214,15 @@ concepts:
       - dermatomal numbness
       - dermatomal weakness
 
+  radiculopathy_with_deficit:
+    type: derived
+    category: neurologic_condition
+    logic: all_of
+    definition: Radiculopathy with objective neurologic deficit on exam.
+    derived_from:
+      - radiculopathy
+      - objective_neurologic_deficit
+
   objective_neurologic_deficit:
     type: derived
     category: neurologic_finding
@@ -227,11 +264,6 @@ concepts:
       - difficulty standing due to weakness
       - unable to stand
       - difficulty walking
-    strength_scale_indicators:
-      - 4/5
-      - 3/5
-      - 2/5
-      - 1/5
     negation_patterns:
       - 5/5 strength
       - normal strength
@@ -244,6 +276,57 @@ concepts:
       suspected:
         - concerning for
         - possible
+
+  motor_weakness_major:
+    type: atomic
+    category: neurologic_finding
+    definition: Major motor weakness consistent with significant neurologic deficit.
+    positive_indicators:
+      - 3/5 strength
+      - strength 3/5
+      - motor strength 3/5
+      - 3/5 motor strength
+      - 2/5 strength
+      - 1/5 strength
+      - significant motor deficit
+      - profound motor weakness
+      - severe motor weakness
+      - severe weakness
+      - major motor weakness
+    negation_patterns:
+      - 4/5 strength
+      - mild weakness
+      - slight weakness
+      - minor weakness
+      - near normal strength
+    certainty_signals:
+      confirmed:
+        - severe motor weakness
+        - profound motor weakness
+      suspected:
+        - concerning for major motor weakness
+        - possible major motor weakness
+
+  motor_weakness_mild:
+    type: atomic
+    category: neurologic_finding
+    definition: Mild motor weakness not meeting major deficit criteria.
+    positive_indicators:
+      - 4/5 strength
+      - mild weakness
+      - slight weakness
+      - minor weakness
+      - mild motor weakness
+    negation_patterns:
+      - 5/5 strength
+      - normal strength
+      - full strength
+      - strength intact
+    certainty_signals:
+      confirmed:
+        - mild weakness
+      suspected:
+        - possible mild weakness
 
 
   sensory_deficit:
@@ -258,41 +341,119 @@ concepts:
       - S1 distribution
       - bilateral lower extremity numbness
 
-  symptoms_over_6_weeks:
+  saddle_anesthesia:
+    type: atomic
+    category: neurologic_finding
+    definition: Loss of sensation in the perineal area (saddle distribution).
+    positive_indicators:
+      - saddle anesthesia
+      - perineal anesthesia
+      - saddle numbness
+      - loss of sensation in saddle area
+      - anesthesia in perineum
+    negation_patterns:
+      - sensation intact in saddle area
+      - no saddle anesthesia
+
+  bowel_dysfunction:
+    type: atomic
+    category: neurologic_finding
+    definition: Abnormal bowel function suggestive of neurologic compromise.
+    positive_indicators:
+      - bowel incontinence
+      - fecal incontinence
+      - constipation
+      - difficulty with bowel movements
+      - inability to control bowels
+      - bowel dysfunction
+    negation_patterns:
+      - normal bowel function
+      - bowel habits normal
+
+  bladder_dysfunction:
+    type: atomic
+    category: neurologic_finding
+    definition: Abnormal bladder function suggestive of neurologic compromise.
+    positive_indicators:
+      - urinary incontinence
+      - bladder incontinence
+      - difficulty urinating
+      - urinary retention
+      - inability to void
+      - bladder dysfunction
+    negation_patterns:
+      - normal bladder function
+      - voiding normal
+
+  urinary_retention:
+    type: atomic
+    category: neurologic_finding
+    definition: Inability to empty the bladder.
+    positive_indicators:
+      - urinary retention
+      - unable to urinate
+      - retention of urine
+      - bladder not emptying
+    negation_patterns:
+      - normal voiding
+      - able to urinate normally
+
+  symptoms_acute:
     type: atomic
     category: symptom_duration
-    definition: Symptoms present longer than six weeks.
+    definition: Symptoms present for less than 6 weeks.
     positive_indicators:
-      - chronic low back pain
-      - longstanding pain
-      - several years of pain
-      - persistent pain for months
-    duration_indicators:
-      - more than six weeks
+      - symptoms under 6 weeks
+      - acute onset
+      - recent onset
+
+  symptoms_subacute:
+    type: atomic
+    category: symptom_duration
+    definition: Symptoms present for 6-12 weeks.
+    positive_indicators:
+      - 6-12 weeks
+      - subacute
+
+  symptoms_chronic:
+    type: atomic
+    category: symptom_duration
+    definition: Symptoms present for more than 6 weeks.
+    positive_indicators:
       - more than 6 weeks
-      - over six weeks
-      - over 6 weeks
-      - greater than six weeks
-      - greater than 6 weeks
-      - six week history
-      - 6 week history
-      - two month history
-      - 2 month history
-      - three month history
-      - 3 month history
-      - four month history
-      - 4 month history
-      - greater than 4 months
-      - more than 4 months
-      - several months
+      - months
+      - years
       - chronic
-      - persistent for months
-      - "> 6 weeks"
-      - ">6 weeks"
-      - "> 2 months"
-      - ">2 months"
-      - "> 4 months"
-      - ">4 months"
+      - longstanding
+      - persistent
+
+  duration_numeric_over_6_weeks:
+    type: atomic
+    category: symptom_duration
+    definition: Explicit or inferred symptom duration greater than 6 weeks
+    positive_indicators:
+      - 2 months
+      - 3 months
+      - 4 months
+      - 5 months
+      - 6 months
+      - several months
+      - months of symptoms
+      - years of symptoms
+      - approx 5 months
+      - 5 months
+      - 6 months history
+      - chronic pain for months
+      - longstanding pain for months
+
+  symptoms_over_6_weeks:
+    type: derived
+    category: symptom_duration
+    logic: any_of
+    definition: Symptoms present longer than six weeks.
+    derived_from:
+      - symptoms_chronic
+      - duration_numeric_over_6_weeks
 
   symptoms_under_6_weeks:
     type: atomic
@@ -316,15 +477,47 @@ concepts:
       - symptoms for several weeks
       - symptoms for a few weeks
 
-  acute_low_back_pain:
-    type: derived
-    category: condition
-    logic: all_of
-    definition: Low back pain present for less than six weeks.
-    derived_from:
-      - low_back_pain
-      - symptoms_under_6_weeks
+  acute_low_back_pain_episode:
+    type: atomic
+    category: policy_state
+    definition: Clinically acute low back pain episode (<6 weeks).
+    positive_indicators:
+      - symptoms under 6 weeks
+      - acute onset back pain
+      - acute low back pain
 
+  absence_of_red_flags:
+    type: atomic
+    category: policy_state
+    definition: Absence of red flag findings on clinical evaluation.
+    positive_indicators:
+      - normal neuro exam
+      - no weakness
+      - no bowel or bladder symptoms
+      - no saddle anesthesia
+      - no urinary retention
+      - no fecal incontinence
+
+  no_red_flag_finding:
+    type: derived
+    category: policy_state
+    logic: none_of
+    definition: Explicit absence of red flag conditions
+    derived_from:
+      - cauda_equina_syndrome
+      - spinal_malignancy
+      - spinal_infection
+      - motor_weakness_major
+      - progressive_neurologic_symptoms
+
+  no_red_flags:
+    type: derived
+    category: policy_state
+    logic: all_of
+    definition: No red flag findings present.
+    derived_from:
+      - normal_neurologic_exam
+      - no_red_flag_finding
 
   osteoporosis_risk:
     type: atomic
@@ -338,20 +531,35 @@ concepts:
       - low bone density
       - elderly patient
 
-  no_red_flags:
+  red_flag_finding:
     type: derived
-    category: policy_state
-    logic: all_of
-    derived_from:
-      - normal_neurologic_exam
-
-  red_flag:
-    type: derived
-    category: policy_state
+    category: neurologic_emergency
+    logic: any_of
     definition: Clinical features that override acute low back pain exclusion.
     derived_from:
       - cauda_equina_syndrome
-      - major_trauma
+      - spinal_malignancy
+      - spinal_infection
+      - major_motor_weakness
+      - progressive_neurologic_symptoms
+
+  neurologic_red_flag:
+    type: derived
+    category: neurologic_emergency
+    logic: any_of
+    definition: Neurologic findings that require urgent evaluation.
+    derived_from:
+      - motor_weakness_major
+      - cauda_equina_syndrome
+      - rapid_neurologic_decline
+
+  traumatic_neurologic_deficit:
+    type: derived
+    category: neurologic_emergency
+    logic: all_of
+    definition: Trauma with neurologic deficit.
+    derived_from:
+      - trauma
       - objective_neurologic_deficit
 
   major_trauma:
@@ -361,16 +569,33 @@ concepts:
     positive_indicators:
       - high-speed motor vehicle collision
       - highway speed collision
+      - motor vehicle accident
       - motor vehicle accident at highway speed
+      - mvc
       - hit from behind at high speed
       - rear-ended at highway speed
+      - rear ended at highway speed
+      - rear ended
+      - rear-ended
+      - restrained driver
       - major trauma
       - fall from height >6 feet
       - pedestrian hit by vehicle
       - trauma resulting in severe pain
     supporting_findings:
       - mechanism of injury significant for fracture
+
+  possible_spinal_fracture:
+    type: derived
+    category: clinical_risk
+    definition: Trauma mechanism with risk for vertebral fracture.
+    logic: any_of
+    positive_indicators:
+      - possible spinal fracture
+      - fracture suspected
+      - suspected fracture
     derived_from:
+      - major_trauma
       - trauma
 
   conservative_therapy_failed:
@@ -389,29 +614,32 @@ concepts:
       - limited relief
       - inadequate response
 
-  progressive_symptoms:
+  progressive_neurologic_symptoms:
     type: atomic
-    category: symptom_progression
-    definition: Symptoms worsening over time.
+    category: neurologic_progression
+    definition: Worsening neurologic function or persistent symptoms despite treatment.
     positive_indicators:
-      - progressive pain
-      - progressive symptoms
-      - worsening pain
-      - worsening symptoms
-      - progressively worsening
-      - increasing pain
-      - symptoms worsening
-    negation_phrases:
-      - persistent symptoms
+      - progressive weakness
+      - increasing weakness
+      - worsening motor weakness
+      - new onset weakness
+      - spreading sensory deficit
+      - worsening numbness
+      - deteriorating neurologic exam findings
+      - increasing difficulty walking
+      - progressive neurologic deficit
+      - worsening neurologic deficit
+      - progressive symptoms despite therapy
+      - persistent symptoms despite treatment
+      - functional worsening
+      - progression of radicular pain
+      - failure to improve with therapy
+      - worsening despite conservative management
+    negation_patterns:
+      - pain only
+      - stable neurologic exam
       - unchanged symptoms
       - stable symptoms
-      - duration only
-    certainty_signals:
-      confirmed:
-      - worsening
-      - increasing
-      suspected:
-      - progressive
 
   chronic_mechanical_low_back_pain:
     type: derived
@@ -432,6 +660,34 @@ concepts:
     derived_from:
       - low_back_pain
       - symptoms_over_6_weeks
+
+  persistent_radiculopathy:
+    type: derived
+    category: imaging_indication
+    logic: all_of
+    definition: Radiculopathy persisting longer than six weeks.
+    derived_from:
+      - radiculopathy
+      - symptoms_over_6_weeks
+
+  persistent_radiculopathy_despite_therapy:
+    type: derived
+    category: imaging_indication
+    logic: all_of
+    definition: Radiculopathy persisting despite conservative therapy.
+    derived_from:
+      - radiculopathy
+      - symptoms_over_6_weeks
+      - conservative_therapy_failed
+
+  failed_conservative_therapy_with_neuro_symptoms:
+    type: derived
+    category: imaging_indication
+    logic: all_of
+    definition: Persistent neurologic symptoms despite conservative therapy
+    derived_from:
+      - radiculopathy
+      - conservative_therapy_failed
 
   normal_neurologic_exam:
     type: atomic
@@ -467,6 +723,21 @@ concepts:
       - MVC
       - fall
       - traumatic injury
+
+  minor_trauma:
+    type: atomic
+    category: clinical_history
+    definition: Trauma that is low-energy or unlikely to produce major fracture.
+    positive_indicators:
+      - minor fall
+      - fall from standing
+      - lifting injury
+      - twisting injury
+      - low energy fall
+      - ground-level fall
+      - slip and fall
+      - stumble
+      - simple fall
 
   rapid_neurologic_decline:
     type: atomic
@@ -552,3 +823,32 @@ concepts:
       - temporary improvement only
       - returned to baseline
       - returned to baseline levels
+
+  acute_radiculopathy_with_exam_findings:
+    type: derived
+    category: imaging_indication
+    logic: all_of
+    definition: Acute radiculopathy with supportive neurologic exam findings.
+    derived_from:
+      - radiculopathy
+      - symptoms_acute
+      - positive_straight_leg_raise
+
+  early_imaging_indicated:
+    type: derived
+    category: imaging_indication
+    logic: any_of
+    definition: Clinical scenarios where imaging is appropriate despite acute onset.
+    derived_from:
+      - acute_radiculopathy_with_exam_findings
+      - traumatic_neurologic_deficit
+      - neurologic_red_flag
+
+  acute_imaging_exception_applies:
+    type: derived
+    category: policy_override
+    logic: any_of
+    definition: Exceptions that allow imaging for acute presentations.
+    derived_from:
+      - neurologic_red_flag
+      - acute_radiculopathy_with_exam_findings
