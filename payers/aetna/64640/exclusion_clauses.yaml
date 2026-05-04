@@ -1,0 +1,76 @@
+exclusion_clauses:
+
+  - id: AETNA_64640_E01
+    name: Occipital nerve block for occipital neuralgia
+    policy_text: Occipital nerve block for occipital neuralgia is experimental and investigational.
+    exclusion_concepts:
+      - occipital_neuralgia
+      - occipital_nerve_block
+
+
+  - id: AETNA_64640_E02
+    name: Peripheral nerve blocks as sole chronic pain treatment
+    policy_text: Peripheral nerve blocks as sole treatment for chronic non-malignant pain are experimental.
+    exclusion_concepts:
+      - chronic_pain
+      - no_comprehensive_pain_program
+
+
+  - id: AETNA_64640_E03
+    name: Genicular nerve block
+    policy_text: Genicular nerve block is experimental and investigational.
+    exclusion_concepts:
+      - genicular_nerve_block
+
+
+  - id: AETNA_64640_E04
+    name: Occipital nerve block for headache disorders
+    policy_text: Peripheral nerve blocks for headaches including migraine are experimental.
+    exclusion_concepts:
+      - headache
+      - migraine
+      - occipital_nerve_block
+
+
+  - id: AETNA_64640_E05
+    name: Peripheral nerve block for post-herpetic neuralgia
+    policy_text: Peripheral nerve blocks for post-herpetic neuralgia are experimental.
+    exclusion_concepts:
+      - post_herpetic_neuralgia
+
+
+  - id: AETNA_64640_E06
+    name: Peripheral nerve blocks for chronic pelvic pain
+    policy_text: Peripheral nerve blocks for chronic pelvic pain conditions are experimental.
+    exclusion_concepts:
+      - chronic_pelvic_pain
+      - investigational_indication
+
+
+  - id: AETNA_64640_E07
+    name: Repetitive nerve blocks for chronic non-malignant pain
+    policy_text: Repetitive peripheral nerve blocks for chronic non-malignant pain are experimental.
+    exclusion_concepts:
+      - chronic_pain
+      - repeated_procedure
+
+
+  - id: AETNA_64640_E08
+    name: Nerve blocks for musculoskeletal chronic pain conditions
+    policy_text: Nerve blocks for chronic musculoskeletal pain conditions are experimental.
+    exclusion_concepts:
+      - chronic_musculoskeletal_pain
+
+
+  - id: AETNA_64640_E09
+    name: Nerve hydrodissection
+    policy_text: Nerve hydrodissection is experimental and investigational.
+    exclusion_concepts:
+      - nerve_hydrodissection
+
+
+  - id: AETNA_64640_E10
+    name: Nerve blocks for non-covered indications
+    policy_text: Nerve blocks for indications not listed as medically necessary are not covered.
+    exclusion_concepts:
+      - non_covered_indication

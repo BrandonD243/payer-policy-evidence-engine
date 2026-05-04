@@ -1,0 +1,142 @@
+approval_clauses:
+
+  - id: AETNA_64640_C01
+    name: Celiac plexus block for cancer pain
+    policy_text: Celiac nerve block for the treatment of cancer/malignancy pain.
+    clause_type: diagnosis_based
+    required_concepts:
+      - cancer_pain
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+
+  - id: AETNA_64640_C02
+    name: Splanchnic nerve block for cancer pain
+    policy_text: Splanchnic nerve block for the treatment of cancer/malignancy pain.
+    clause_type: diagnosis_based
+    required_concepts:
+      - cancer_pain
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+
+  - id: AETNA_64640_C03
+    name: Peripheral nerve block for acute pain
+    policy_text: Peripheral nerve blocks for the treatment of acute pain.
+    clause_type: symptom_based
+    required_concepts:
+      - acute_pain
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+
+  - id: AETNA_64640_C04
+    name: Peripheral nerve block for chronic pain with program requirement
+    policy_text: Peripheral nerve blocks for chronic pain only as part of a comprehensive pain management program.
+    clause_type: program_requirement
+    required_concepts:
+      - chronic_pain
+      - comprehensive_pain_program
+    expected_certainty: confirmed
+    minimum_confidence: strong
+
+
+  - id: AETNA_64640_C05
+    name: Ganglion impar block after failed conservative therapy
+    policy_text: Ganglion impar block for chronic anorectal pain after failed conservative management.
+    clause_type: step_therapy
+    required_concepts:
+      - chronic_anorectal_pain
+      - conservative_therapy_failed
+    expected_certainty: confirmed
+    minimum_confidence: strong
+
+
+  - id: AETNA_64640_C06
+    name: Genitofemoral nerve block for chronic pelvic pain
+    policy_text: Genitofemoral nerve block for chronic pelvic/suprapubic pain.
+    clause_type: diagnosis_based
+    required_concepts:
+      - chronic_pelvic_pain
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+
+  - id: AETNA_64640_C07
+    name: Inferior alveolar nerve block for refractory facial pain
+    policy_text: Inferior alveolar nerve block for refractory facial/jaw pain after failed conventional medications.
+    clause_type: step_therapy
+    required_concepts:
+      - facial_pain
+      - refractory_condition
+    expected_certainty: confirmed
+    minimum_confidence: strong
+
+
+  - id: AETNA_64640_C08
+    name: Intercostal nerve block for acute or chronic neuritis
+    policy_text: Intercostal nerve blocks for acute intercostal pain or chronic intercostal neuritis as part of a comprehensive pain program.
+    clause_type: mixed
+    required_concepts:
+      - intercostal_pain
+    optional_concepts:
+      - chronic_pain
+      - comprehensive_pain_program
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+
+  - id: AETNA_64640_C09
+    name: Lateral femoral cutaneous nerve block after failed therapy
+    policy_text: Lateral femoral cutaneous nerve block for meralgia paresthetica after failed conservative therapy.
+    clause_type: step_therapy
+    required_concepts:
+      - meralgia_paresthetica
+      - conservative_therapy_failed
+    expected_certainty: confirmed
+    minimum_confidence: strong
+
+
+  - id: AETNA_64640_C10
+    name: Phrenic nerve block for refractory hiccups
+    policy_text: Phrenic nerve block for refractory hiccups after failure of conservative and pharmacologic therapy.
+    clause_type: step_therapy
+    required_concepts:
+      - refractory_hiccups
+      - refractory_condition
+    expected_certainty: confirmed
+    minimum_confidence: strong
+
+
+  - id: AETNA_64640_C11
+    name: Stellate ganglion block for CRPS after failed therapy
+    policy_text: Stellate ganglion block for CRPS when part of rehabilitation and after failed pharmacotherapy.
+    clause_type: step_therapy
+    required_concepts:
+      - complex_regional_pain_syndrome
+      - rehabilitation_program
+      - refractory_condition
+    expected_certainty: confirmed
+    minimum_confidence: strong
+
+
+  - id: AETNA_64640_C12
+    name: Ultrasound-guided celiac plexus block for pancreatic cancer pain
+    policy_text: US-guided celiac plexus block for inoperable pancreatic cancer pain requiring opioids.
+    clause_type: diagnosis_based
+    required_concepts:
+      - pancreatic_cancer
+      - cancer_pain
+    expected_certainty: confirmed
+    minimum_confidence: strong
+
+
+  - id: AETNA_64640_C13
+    name: Celiac plexus block for chronic pancreatitis refractory pain
+    policy_text: Celiac plexus block as last resort for chronic pancreatitis pain refractory to opioids.
+    clause_type: step_therapy
+    required_concepts:
+      - chronic_pancreatitis
+      - refractory_condition
+    expected_certainty: confirmed
+    minimum_confidence: strong

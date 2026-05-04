@@ -852,3 +852,287 @@ concepts:
     derived_from:
       - neurologic_red_flag
       - acute_radiculopathy_with_exam_findings
+
+# =========================
+# PAIN TAXONOMY
+# =========================
+
+  acute_pain:
+    type: atomic
+    category: pain
+    definition: Short-term pain, typically post-procedural or injury-related.
+    positive_indicators:
+      - acute pain
+      - post-operative pain
+      - post surgical pain
+      - immediate pain after surgery
+      - acute onset pain
+
+
+  chronic_pain:
+    type: atomic
+    category: pain
+    definition: Persistent pain lasting longer than expected healing period.
+    positive_indicators:
+      - chronic pain
+      - longstanding pain
+      - persistent pain
+      - pain for months
+      - pain for years
+
+
+  cancer_pain:
+    type: atomic
+    category: pain
+    definition: Pain associated with malignancy.
+    positive_indicators:
+      - cancer pain
+      - malignancy-related pain
+      - tumor-related pain
+      - pain due to cancer
+
+
+  refractory_pain:
+    type: atomic
+    category: pain
+    definition: Pain not responsive to standard treatments.
+    positive_indicators:
+      - refractory pain
+      - intractable pain
+      - pain not controlled
+      - resistant pain
+
+
+# =========================
+# THERAPY FAILURE / ESCALATION
+# =========================
+
+  failed_pharmacotherapy:
+    type: atomic
+    category: treatment_response
+    definition: Failure of medication-based therapy.
+    positive_indicators:
+      - failed medications
+      - no relief with medications
+      - refractory to NSAIDs
+      - failed gabapentin
+      - failed opioids
+      - inadequate response to medication
+
+
+  refractory_condition:
+    type: derived
+    category: treatment_response
+    logic: any_of
+    definition: Condition refractory to standard therapies.
+    derived_from:
+      - conservative_therapy_failed
+      - failed_pharmacotherapy
+      - refractory_pain
+
+
+# =========================
+# PROGRAM / POLICY CONTEXT
+# =========================
+
+  comprehensive_pain_program:
+    type: atomic
+    category: care_model
+    definition: Structured multidisciplinary pain management program.
+    positive_indicators:
+      - comprehensive pain program
+      - multidisciplinary pain management
+      - pain management program
+      - enrolled in pain program
+
+
+  rehabilitation_program:
+    type: atomic
+    category: care_model
+    definition: Participation in a rehabilitation or functional restoration program.
+    positive_indicators:
+      - rehabilitation program
+      - physical therapy program
+      - rehab program
+
+
+  no_comprehensive_pain_program:
+    type: derived
+    category: policy_state
+    logic: none_of
+    definition: Absence of structured pain program.
+    derived_from:
+      - comprehensive_pain_program
+
+
+# =========================
+# CONDITION-SPECIFIC CONCEPTS
+# =========================
+
+  chronic_anorectal_pain:
+    type: atomic
+    category: pain
+    positive_indicators:
+      - chronic anorectal pain
+      - rectal pain
+      - anal pain
+      - pain with radiation proctitis
+
+
+  chronic_pelvic_pain:
+    type: atomic
+    category: pain
+    positive_indicators:
+      - chronic pelvic pain
+      - pelvic pain
+      - suprapubic pain
+
+
+  facial_pain:
+    type: atomic
+    category: pain
+    positive_indicators:
+      - facial pain
+      - jaw pain
+      - orofacial pain
+
+
+  intercostal_pain:
+    type: atomic
+    category: pain
+    positive_indicators:
+      - intercostal pain
+      - rib pain
+      - chest wall pain
+
+
+  meralgia_paresthetica:
+    type: atomic
+    category: diagnosis
+    definition: Entrapment of the lateral femoral cutaneous nerve.
+    positive_indicators:
+      - meralgia paresthetica
+      - lateral femoral cutaneous nerve entrapment
+
+
+  refractory_hiccups:
+    type: atomic
+    category: condition
+    positive_indicators:
+      - refractory hiccups
+      - persistent hiccups
+      - intractable hiccups
+
+
+  complex_regional_pain_syndrome:
+    type: atomic
+    category: diagnosis
+    positive_indicators:
+      - CRPS
+      - complex regional pain syndrome
+      - reflex sympathetic dystrophy
+
+
+  chronic_pancreatitis:
+    type: atomic
+    category: diagnosis
+    positive_indicators:
+      - chronic pancreatitis
+
+
+  pancreatic_cancer:
+    type: atomic
+    category: malignancy
+    positive_indicators:
+      - pancreatic cancer
+      - pancreatic carcinoma
+
+
+# =========================
+# PROCEDURE-SPECIFIC CONCEPTS
+# =========================
+
+  occipital_nerve_block:
+    type: atomic
+    category: procedure
+    positive_indicators:
+      - occipital nerve block
+      - greater occipital nerve block
+      - GON block
+
+
+  genicular_nerve_block:
+    type: atomic
+    category: procedure
+    positive_indicators:
+      - genicular nerve block
+
+
+  nerve_hydrodissection:
+    type: atomic
+    category: procedure
+    positive_indicators:
+      - nerve hydrodissection
+
+
+  repeated_procedure:
+    type: atomic
+    category: utilization
+    positive_indicators:
+      - repeated injections
+      - multiple repeated blocks
+      - serial nerve blocks
+
+
+# =========================
+# PAIN CONDITIONS FOR EXCLUSIONS
+# =========================
+
+  headache:
+    type: atomic
+    category: symptom
+    positive_indicators:
+      - headache
+
+
+  migraine:
+    type: atomic
+    category: diagnosis
+    positive_indicators:
+      - migraine
+
+
+  post_herpetic_neuralgia:
+    type: atomic
+    category: diagnosis
+    positive_indicators:
+      - post herpetic neuralgia
+
+
+  chronic_musculoskeletal_pain:
+    type: atomic
+    category: pain
+    positive_indicators:
+      - chronic musculoskeletal pain
+      - chronic joint pain
+      - chronic back pain
+
+
+# =========================
+# FALLBACK / POLICY CONTROL
+# =========================
+
+  investigational_indication:
+    type: atomic
+    category: policy_state
+    positive_indicators:
+      - investigational
+      - experimental use
+
+
+  non_covered_indication:
+    type: atomic
+    category: policy_state
+    positive_indicators:
+      - not medically necessary
+      - not covered
