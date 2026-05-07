@@ -321,6 +321,11 @@ class EvidenceCategoryReview(BaseModel):
     clauses: List[EvidenceClause]
 
 
+class EvaluationRule(BaseModel):
+    decision_logic: str
+    display: str
+
+
 class ApprovalResponse(BaseModel):
     case_id: str
     evidence_review: List[EvidenceCategoryReview]
@@ -328,6 +333,8 @@ class ApprovalResponse(BaseModel):
     exclusion_clauses: Optional[List[ClauseEvaluation]] = None
     pa_required: bool
     coverage_status: str = "covered"
+    evaluation_rule: EvaluationRule
+    evaluation_result_summary: str
     evaluation_summary: str
 
 
@@ -382,6 +389,34 @@ def final_decision(coverage_covered: bool, pa_required: bool, exclusions_trigger
     if approval_satisfied:
         return "covered"
     return "not covered"
+
+
+def format_evaluation_rule(decision_logic: Dict[str, Any] | None) -> Dict[str, str]:
+    approvals = (decision_logic or {}).get("approvals", "ANY").upper()
+    display = (
+        "All policy criteria must be satisfied for approval."
+        if approvals == "ALL"
+        else "At least one qualifying medical necessity criterion must be satisfied."
+    )
+    return {
+        "decision_logic": approvals,
+        "display": display,
+    }
+
+
+def format_evaluation_result_summary(
+    decision_logic: Dict[str, Any] | None,
+    satisfied_approvals: int,
+    total_approvals: int,
+) -> str:
+    approvals = (decision_logic or {}).get("approvals", "ANY").upper()
+    if approvals == "ALL":
+        return f"{satisfied_approvals} of {total_approvals} required criteria satisfied"
+    return (
+        f"{satisfied_approvals} qualifying criterion satisfied"
+        if satisfied_approvals > 0
+        else "no qualifying criterion satisfied"
+    )
 
 
 def evaluate_case(
@@ -768,12 +803,21 @@ async def run_case(case_id: str):
     )
 
     # 🔥 Only include `exclusion_clauses` if any remain
+    evaluation_rule = format_evaluation_rule(decision_logic)
+    evaluation_result_summary = format_evaluation_result_summary(
+        decision_logic,
+        satisfied_approvals=len([c for c in approval_results if c.status == "satisfied"]),
+        total_approvals=len(approval_results),
+    )
+
     response_data = {
         "case_id": case_id,
         "evidence_review": evidence_review,
         "approval_clauses": approval_results,
         "pa_required": pa_required,
         "coverage_status": coverage_status,
+        "evaluation_rule": evaluation_rule,
+        "evaluation_result_summary": evaluation_result_summary,
         "evaluation_summary": case_summary
     }
     # Only include exclusions if any evidence exists    
