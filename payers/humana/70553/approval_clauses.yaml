@@ -1,0 +1,67 @@
+approval_clauses:
+
+  - id: HUMANA_70553_C01
+    name: Suspected intracranial tumor
+    policy_text: >
+      Known or suspected intracranial mass lesion requiring MRI evaluation.
+    clause_type: suspicion_based
+    required_concepts:
+      - brain_tumor
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: HUMANA_70553_C02
+    name: New onset seizure
+    policy_text: >
+      Evaluation of new onset seizure or unexplained seizure disorder.
+    clause_type: neurologic_condition
+    required_concepts:
+      - seizure
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: HUMANA_70553_C03
+    name: Persistent headache with red flags
+    policy_text: >
+      Persistent headache associated with focal neurologic findings,
+      papilledema, or other intracranial warning signs.
+    clause_type: symptom_based
+    required_concepts:
+      - severe_headache
+      - neurologic_red_flag
+    expected_certainty: confirmed
+    minimum_confidence: strong
+
+  - id: HUMANA_70553_C04
+    name: Suspected stroke
+    policy_text: >
+      Evaluation of suspected cerebrovascular accident or TIA.
+    clause_type: vascular_neurologic
+    required_concepts:
+      - stroke
+      - transient_ischemic_attack
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: strong
+
+  - id: HUMANA_70553_C05
+    name: Demyelinating disease
+    policy_text: >
+      Evaluation of multiple sclerosis or other demyelinating disease.
+    clause_type: neurologic_condition
+    required_concepts:
+      - demyelinating_disease
+      - multiple_sclerosis
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: HUMANA_70553_C06
+    name: Intracranial infection
+    policy_text: >
+      Suspected intracranial infection requiring MRI evaluation.
+    clause_type: infection_related
+    required_concepts:
+      - intracranial_infection
+    expected_certainty: suspected
+    minimum_confidence: moderate

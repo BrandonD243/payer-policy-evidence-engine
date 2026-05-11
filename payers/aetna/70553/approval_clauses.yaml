@@ -1,0 +1,889 @@
+approval_clauses:
+
+  - id: AETNA_70553_C01
+    name: Suspected intracranial neoplasm
+    policy_text: >
+      Known or suspected intracranial neoplasm requiring brain MRI evaluation.
+    clause_type: suspicion_based
+    required_concepts:
+      - brain_tumor
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C02
+    name: Multiple sclerosis or demyelinating disease
+    policy_text: >
+      Known or suspected demyelinating disease including multiple sclerosis.
+    clause_type: neurologic_condition
+    required_concepts:
+      - demyelinating_disease
+      - multiple_sclerosis
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C03
+    name: Acute neurologic deficit
+    policy_text: >
+      Acute or progressive neurologic deficits requiring brain imaging.
+    clause_type: neurologic_emergency
+    required_concepts:
+      - acute_neurologic_deficit
+      - progressive_neurologic_symptoms
+    logic: OR
+    expected_certainty: confirmed
+    minimum_confidence: strong
+
+  - id: AETNA_70553_C04
+    name: Seizure evaluation
+    policy_text: >
+      Evaluation of seizure disorder or unexplained seizure activity.
+    clause_type: neurologic_condition
+    required_concepts:
+      - seizure
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C05
+    name: Persistent severe headache with neurologic findings
+    policy_text: >
+      Persistent severe headache associated with focal neurologic findings
+      or other red flag symptoms.
+    clause_type: symptom_based
+    required_concepts:
+      - severe_headache
+      - focal_neurologic_deficit
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C06
+    name: Suspected intracranial infection
+    policy_text: >
+      Suspected intracranial infection including abscess or encephalitis.
+    clause_type: suspicion_based
+    required_concepts:
+      - intracranial_infection
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C07
+    name: Pituitary abnormality
+    policy_text: >
+      Evaluation of suspected pituitary lesion or pituitary dysfunction.
+    clause_type: endocrine_related
+    required_concepts:
+      - pituitary_mass
+      - pituitary_dysfunction
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C08
+    name: Stroke or transient ischemic attack
+    policy_text: >
+      Evaluation of suspected stroke or transient ischemic attack.
+    clause_type: vascular_neurologic
+    required_concepts:
+      - stroke
+      - transient_ischemic_attack
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: strong
+
+  - id: AETNA_70553_C09
+    name: Altered mental status
+    policy_text: >
+      Unexplained altered mental status requiring intracranial evaluation.
+    clause_type: neurologic_condition
+    required_concepts:
+      - altered_mental_status
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C10
+    name: Brain metastases evaluation
+    policy_text: >
+      Evaluation for suspected intracranial metastatic disease.
+    clause_type: malignancy_related
+    required_concepts:
+      - metastatic_cancer
+      - brain_metastases
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: moderateapproval_clauses:
+
+  - id: AETNA_70553_C01
+    name: Suspected intracranial neoplasm
+    policy_text: >
+      Known or suspected intracranial neoplasm requiring brain MRI evaluation.
+    clause_type: suspicion_based
+    required_concepts:
+      - brain_tumor
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C02
+    name: Multiple sclerosis or demyelinating disease
+    policy_text: >
+      Known or suspected demyelinating disease including multiple sclerosis.
+    clause_type: neurologic_condition
+    required_concepts:
+      - demyelinating_disease
+      - multiple_sclerosis
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C03
+    name: Acute neurologic deficit
+    policy_text: >
+      Acute or progressive neurologic deficits requiring brain imaging.
+    clause_type: neurologic_emergency
+    required_concepts:
+      - acute_neurologic_deficit
+      - progressive_neurologic_symptoms
+    logic: OR
+    expected_certainty: confirmed
+    minimum_confidence: strong
+
+  - id: AETNA_70553_C04
+    name: Seizure evaluation
+    policy_text: >
+      Evaluation of seizure disorder or unexplained seizure activity.
+    clause_type: neurologic_condition
+    required_concepts:
+      - seizure
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C05
+    name: Persistent severe headache with neurologic findings
+    policy_text: >
+      Persistent severe headache associated with focal neurologic findings
+      or other red flag symptoms.
+    clause_type: symptom_based
+    required_concepts:
+      - severe_headache
+      - focal_neurologic_deficit
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C06
+    name: Suspected intracranial infection
+    policy_text: >
+      Suspected intracranial infection including abscess or encephalitis.
+    clause_type: suspicion_based
+    required_concepts:
+      - intracranial_infection
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C07
+    name: Pituitary abnormality
+    policy_text: >
+      Evaluation of suspected pituitary lesion or pituitary dysfunction.
+    clause_type: endocrine_related
+    required_concepts:
+      - pituitary_mass
+      - pituitary_dysfunction
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C08
+    name: Stroke or transient ischemic attack
+    policy_text: >
+      Evaluation of suspected stroke or transient ischemic attack.
+    clause_type: vascular_neurologic
+    required_concepts:
+      - stroke
+      - transient_ischemic_attack
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: strong
+
+  - id: AETNA_70553_C09
+    name: Altered mental status
+    policy_text: >
+      Unexplained altered mental status requiring intracranial evaluation.
+    clause_type: neurologic_condition
+    required_concepts:
+      - altered_mental_status
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C10
+    name: Brain metastases evaluation
+    policy_text: >
+      Evaluation for suspected intracranial metastatic disease.
+    clause_type: malignancy_related
+    required_concepts:
+      - metastatic_cancer
+      - brain_metastases
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: moderateapproval_clauses:
+
+  - id: AETNA_70553_C01
+    name: Suspected intracranial neoplasm
+    policy_text: >
+      Known or suspected intracranial neoplasm requiring brain MRI evaluation.
+    clause_type: suspicion_based
+    required_concepts:
+      - brain_tumor
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C02
+    name: Multiple sclerosis or demyelinating disease
+    policy_text: >
+      Known or suspected demyelinating disease including multiple sclerosis.
+    clause_type: neurologic_condition
+    required_concepts:
+      - demyelinating_disease
+      - multiple_sclerosis
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C03
+    name: Acute neurologic deficit
+    policy_text: >
+      Acute or progressive neurologic deficits requiring brain imaging.
+    clause_type: neurologic_emergency
+    required_concepts:
+      - acute_neurologic_deficit
+      - progressive_neurologic_symptoms
+    logic: OR
+    expected_certainty: confirmed
+    minimum_confidence: strong
+
+  - id: AETNA_70553_C04
+    name: Seizure evaluation
+    policy_text: >
+      Evaluation of seizure disorder or unexplained seizure activity.
+    clause_type: neurologic_condition
+    required_concepts:
+      - seizure
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C05
+    name: Persistent severe headache with neurologic findings
+    policy_text: >
+      Persistent severe headache associated with focal neurologic findings
+      or other red flag symptoms.
+    clause_type: symptom_based
+    required_concepts:
+      - severe_headache
+      - focal_neurologic_deficit
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C06
+    name: Suspected intracranial infection
+    policy_text: >
+      Suspected intracranial infection including abscess or encephalitis.
+    clause_type: suspicion_based
+    required_concepts:
+      - intracranial_infection
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C07
+    name: Pituitary abnormality
+    policy_text: >
+      Evaluation of suspected pituitary lesion or pituitary dysfunction.
+    clause_type: endocrine_related
+    required_concepts:
+      - pituitary_mass
+      - pituitary_dysfunction
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C08
+    name: Stroke or transient ischemic attack
+    policy_text: >
+      Evaluation of suspected stroke or transient ischemic attack.
+    clause_type: vascular_neurologic
+    required_concepts:
+      - stroke
+      - transient_ischemic_attack
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: strong
+
+  - id: AETNA_70553_C09
+    name: Altered mental status
+    policy_text: >
+      Unexplained altered mental status requiring intracranial evaluation.
+    clause_type: neurologic_condition
+    required_concepts:
+      - altered_mental_status
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C10
+    name: Brain metastases evaluation
+    policy_text: >
+      Evaluation for suspected intracranial metastatic disease.
+    clause_type: malignancy_related
+    required_concepts:
+      - metastatic_cancer
+      - brain_metastases
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: moderateapproval_clauses:
+
+  - id: AETNA_70553_C01
+    name: Suspected intracranial neoplasm
+    policy_text: >
+      Known or suspected intracranial neoplasm requiring brain MRI evaluation.
+    clause_type: suspicion_based
+    required_concepts:
+      - brain_tumor
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C02
+    name: Multiple sclerosis or demyelinating disease
+    policy_text: >
+      Known or suspected demyelinating disease including multiple sclerosis.
+    clause_type: neurologic_condition
+    required_concepts:
+      - demyelinating_disease
+      - multiple_sclerosis
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C03
+    name: Acute neurologic deficit
+    policy_text: >
+      Acute or progressive neurologic deficits requiring brain imaging.
+    clause_type: neurologic_emergency
+    required_concepts:
+      - acute_neurologic_deficit
+      - progressive_neurologic_symptoms
+    logic: OR
+    expected_certainty: confirmed
+    minimum_confidence: strong
+
+  - id: AETNA_70553_C04
+    name: Seizure evaluation
+    policy_text: >
+      Evaluation of seizure disorder or unexplained seizure activity.
+    clause_type: neurologic_condition
+    required_concepts:
+      - seizure
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C05
+    name: Persistent severe headache with neurologic findings
+    policy_text: >
+      Persistent severe headache associated with focal neurologic findings
+      or other red flag symptoms.
+    clause_type: symptom_based
+    required_concepts:
+      - severe_headache
+      - focal_neurologic_deficit
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C06
+    name: Suspected intracranial infection
+    policy_text: >
+      Suspected intracranial infection including abscess or encephalitis.
+    clause_type: suspicion_based
+    required_concepts:
+      - intracranial_infection
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C07
+    name: Pituitary abnormality
+    policy_text: >
+      Evaluation of suspected pituitary lesion or pituitary dysfunction.
+    clause_type: endocrine_related
+    required_concepts:
+      - pituitary_mass
+      - pituitary_dysfunction
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C08
+    name: Stroke or transient ischemic attack
+    policy_text: >
+      Evaluation of suspected stroke or transient ischemic attack.
+    clause_type: vascular_neurologic
+    required_concepts:
+      - stroke
+      - transient_ischemic_attack
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: strong
+
+  - id: AETNA_70553_C09
+    name: Altered mental status
+    policy_text: >
+      Unexplained altered mental status requiring intracranial evaluation.
+    clause_type: neurologic_condition
+    required_concepts:
+      - altered_mental_status
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C10
+    name: Brain metastases evaluation
+    policy_text: >
+      Evaluation for suspected intracranial metastatic disease.
+    clause_type: malignancy_related
+    required_concepts:
+      - metastatic_cancer
+      - brain_metastases
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: moderateapproval_clauses:
+
+  - id: AETNA_70553_C01
+    name: Suspected intracranial neoplasm
+    policy_text: >
+      Known or suspected intracranial neoplasm requiring brain MRI evaluation.
+    clause_type: suspicion_based
+    required_concepts:
+      - brain_tumor
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C02
+    name: Multiple sclerosis or demyelinating disease
+    policy_text: >
+      Known or suspected demyelinating disease including multiple sclerosis.
+    clause_type: neurologic_condition
+    required_concepts:
+      - demyelinating_disease
+      - multiple_sclerosis
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C03
+    name: Acute neurologic deficit
+    policy_text: >
+      Acute or progressive neurologic deficits requiring brain imaging.
+    clause_type: neurologic_emergency
+    required_concepts:
+      - acute_neurologic_deficit
+      - progressive_neurologic_symptoms
+    logic: OR
+    expected_certainty: confirmed
+    minimum_confidence: strong
+
+  - id: AETNA_70553_C04
+    name: Seizure evaluation
+    policy_text: >
+      Evaluation of seizure disorder or unexplained seizure activity.
+    clause_type: neurologic_condition
+    required_concepts:
+      - seizure
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C05
+    name: Persistent severe headache with neurologic findings
+    policy_text: >
+      Persistent severe headache associated with focal neurologic findings
+      or other red flag symptoms.
+    clause_type: symptom_based
+    required_concepts:
+      - severe_headache
+      - focal_neurologic_deficit
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C06
+    name: Suspected intracranial infection
+    policy_text: >
+      Suspected intracranial infection including abscess or encephalitis.
+    clause_type: suspicion_based
+    required_concepts:
+      - intracranial_infection
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C07
+    name: Pituitary abnormality
+    policy_text: >
+      Evaluation of suspected pituitary lesion or pituitary dysfunction.
+    clause_type: endocrine_related
+    required_concepts:
+      - pituitary_mass
+      - pituitary_dysfunction
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C08
+    name: Stroke or transient ischemic attack
+    policy_text: >
+      Evaluation of suspected stroke or transient ischemic attack.
+    clause_type: vascular_neurologic
+    required_concepts:
+      - stroke
+      - transient_ischemic_attack
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: strong
+
+  - id: AETNA_70553_C09
+    name: Altered mental status
+    policy_text: >
+      Unexplained altered mental status requiring intracranial evaluation.
+    clause_type: neurologic_condition
+    required_concepts:
+      - altered_mental_status
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C10
+    name: Brain metastases evaluation
+    policy_text: >
+      Evaluation for suspected intracranial metastatic disease.
+    clause_type: malignancy_related
+    required_concepts:
+      - metastatic_cancer
+      - brain_metastases
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: moderateapproval_clauses:
+
+  - id: AETNA_70553_C01
+    name: Suspected intracranial neoplasm
+    policy_text: >
+      Known or suspected intracranial neoplasm requiring brain MRI evaluation.
+    clause_type: suspicion_based
+    required_concepts:
+      - brain_tumor
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C02
+    name: Multiple sclerosis or demyelinating disease
+    policy_text: >
+      Known or suspected demyelinating disease including multiple sclerosis.
+    clause_type: neurologic_condition
+    required_concepts:
+      - demyelinating_disease
+      - multiple_sclerosis
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C03
+    name: Acute neurologic deficit
+    policy_text: >
+      Acute or progressive neurologic deficits requiring brain imaging.
+    clause_type: neurologic_emergency
+    required_concepts:
+      - acute_neurologic_deficit
+      - progressive_neurologic_symptoms
+    logic: OR
+    expected_certainty: confirmed
+    minimum_confidence: strong
+
+  - id: AETNA_70553_C04
+    name: Seizure evaluation
+    policy_text: >
+      Evaluation of seizure disorder or unexplained seizure activity.
+    clause_type: neurologic_condition
+    required_concepts:
+      - seizure
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C05
+    name: Persistent severe headache with neurologic findings
+    policy_text: >
+      Persistent severe headache associated with focal neurologic findings
+      or other red flag symptoms.
+    clause_type: symptom_based
+    required_concepts:
+      - severe_headache
+      - focal_neurologic_deficit
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C06
+    name: Suspected intracranial infection
+    policy_text: >
+      Suspected intracranial infection including abscess or encephalitis.
+    clause_type: suspicion_based
+    required_concepts:
+      - intracranial_infection
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C07
+    name: Pituitary abnormality
+    policy_text: >
+      Evaluation of suspected pituitary lesion or pituitary dysfunction.
+    clause_type: endocrine_related
+    required_concepts:
+      - pituitary_mass
+      - pituitary_dysfunction
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C08
+    name: Stroke or transient ischemic attack
+    policy_text: >
+      Evaluation of suspected stroke or transient ischemic attack.
+    clause_type: vascular_neurologic
+    required_concepts:
+      - stroke
+      - transient_ischemic_attack
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: strong
+
+  - id: AETNA_70553_C09
+    name: Altered mental status
+    policy_text: >
+      Unexplained altered mental status requiring intracranial evaluation.
+    clause_type: neurologic_condition
+    required_concepts:
+      - altered_mental_status
+    expected_certainty: confirmed
+    minimum_confidence: moderate
+
+  - id: AETNA_70553_C10
+    name: Brain metastases evaluation
+    policy_text: >
+      Evaluation for suspected intracranial metastatic disease.
+    clause_type: malignancy_related
+    required_concepts:
+      - metastatic_cancer
+      - brain_metastases
+    logic: OR
+    expected_certainty: suspected
+    minimum_confidence: moderatecpt_code: 70553
+payer: aetna
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Aetna Clinical Policy Bulletin
+
+description: >
+  Aetna policy governing medical necessity for MRI of the brain
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: truecpt_code: 70553
+payer: aetna
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Aetna Clinical Policy Bulletin
+
+description: >
+  Aetna policy governing medical necessity for MRI of the brain
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: truecpt_code: 70553
+payer: aetna
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Aetna Clinical Policy Bulletin
+
+description: >
+  Aetna policy governing medical necessity for MRI of the brain
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: truecpt_code: 70553
+payer: aetna
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Aetna Clinical Policy Bulletin
+
+description: >
+  Aetna policy governing medical necessity for MRI of the brain
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: truecpt_code: 70553
+payer: aetna
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Aetna Clinical Policy Bulletin
+
+description: >
+  Aetna policy governing medical necessity for MRI of the brain
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: truecpt_code: 70553
+payer: aetna
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Aetna Clinical Policy Bulletin
+
+description: >
+  Aetna policy governing medical necessity for MRI of the brain
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: truecpt_code: 70553
+payer: aetna
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Aetna Clinical Policy Bulletin
+
+description: >
+  Aetna policy governing medical necessity for MRI of the brain
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: truecpt_code: 70553
+payer: aetna
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Aetna Clinical Policy Bulletin
+
+description: >
+  Aetna policy governing medical necessity for MRI of the brain
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: truecpt_code: 70553
+payer: aetna
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Aetna Clinical Policy Bulletin
+
+description: >
+  Aetna policy governing medical necessity for MRI of the brain
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: truecpt_code: 70553
+payer: aetna
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Aetna Clinical Policy Bulletin
+
+description: >
+  Aetna policy governing medical necessity for MRI of the brain
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: truecpt_code: 70553
+payer: aetna
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Aetna Clinical Policy Bulletin
+
+description: >
+  Aetna policy governing medical necessity for MRI of the brain
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: truecpt_code: 70553
+payer: aetna
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Aetna Clinical Policy Bulletin
+
+description: >
+  Aetna policy governing medical necessity for MRI of the brain
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: truecpt_code: 70553
+payer: aetna
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Aetna Clinical Policy Bulletin
+
+description: >
+  Aetna policy governing medical necessity for MRI of the brain
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: truecpt_code: 70553
+payer: aetna
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Aetna Clinical Policy Bulletin
+
+description: >
+  Aetna policy governing medical necessity for MRI of the brain
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: truecpt_code: 70553
+payer: aetna
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Aetna Clinical Policy Bulletin
+
+description: >
+  Aetna policy governing medical necessity for MRI of the brain
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: truecpt_code: 70553
+payer: aetna
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Aetna Clinical Policy Bulletin
+
+description: >
+  Aetna policy governing medical necessity for MRI of the brain
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: truecpt_code: 70553
+payer: aetna
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Aetna Clinical Policy Bulletin
+
+description: >
+  Aetna policy governing medical necessity for MRI of the brain
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: truecpt_code: 70553
+payer: aetna
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Aetna Clinical Policy Bulletin
+
+description: >
+  Aetna policy governing medical necessity for MRI of the brain
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: true

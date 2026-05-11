@@ -10,4 +10,17 @@ pa_rules:
 
     requires_pa: true
 
+  - rule_id: AETNA_COMMERCIAL_70553_OUTPATIENT
+    description: Brain MRI requires PA for outpatient commercial plans
+    priority: 100
+
+    match:
+      cpt_codes: ["70553"]
+      plan_types: ["commercial"]
+      place_of_service: ["outpatient", "office"]
+
+    requires_pa: true
+
+default_requires_pa: false
+
 default_requires_pa: false

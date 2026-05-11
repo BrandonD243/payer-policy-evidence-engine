@@ -11,3 +11,12 @@ coverage_rules:
       cpt_codes: ["64640"]
     coverage_status: covered
     priority: 100
+
+  - rule_id: HUMANA_COMMERCIAL_70553_COVERED
+    match:
+      cpt_codes: ["70553"]
+
+    coverage_status: covered
+    priority: 100
+
+default_coverage_status: covered

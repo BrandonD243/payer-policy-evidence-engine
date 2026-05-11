@@ -7,4 +7,12 @@ coverage_rules:
     coverage_status: non_covered
     priority: 100
 
+  - rule_id: AETNA_NY_70553_NOT_COVERED
+    match:
+      cpt_codes: ["70553"]
+      states: ["NY"]
+
+    coverage_status: non_covered
+    priority: 100
+
 default_coverage_status: covered

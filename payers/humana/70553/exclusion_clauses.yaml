@@ -1,0 +1,25 @@
+exclusion_clauses:
+
+  - id: HUMANA_70553_E01
+    name: Uncomplicated headache
+    policy_text: >
+      MRI is not medically necessary for uncomplicated headache
+      without neurologic deficits or red flag symptoms.
+    exclusion_concepts:
+      - uncomplicated_headache
+      - no_red_flags
+
+  - id: HUMANA_70553_E02
+    name: Repeat imaging without change
+    policy_text: >
+      Repeat MRI without significant clinical deterioration
+      or new neurologic findings is not medically necessary.
+    exclusion_concepts:
+      - repeat_imaging_without_change
+
+  - id: HUMANA_70553_E03
+    name: Experimental imaging techniques
+    policy_text: >
+      Experimental or investigational MRI techniques are not covered.
+    exclusion_concepts:
+      - experimental_imaging

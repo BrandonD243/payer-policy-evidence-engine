@@ -1,0 +1,13 @@
+cpt_code: 70553
+payer: aetna
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Aetna Clinical Policy Bulletin
+
+description: >
+  Aetna policy governing medical necessity for MRI of the brain
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: true

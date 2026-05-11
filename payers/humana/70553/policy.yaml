@@ -1,0 +1,13 @@
+cpt_code: 70553
+payer: humana
+policy_name: MRI Brain With and Without Contrast
+version: 2026-05-08
+source: Humana Diagnostic Imaging Guidelines
+
+description: >
+  Humana policy governing medical necessity for MRI brain imaging
+  performed without and with contrast.
+
+decision_logic:
+  approvals: ANY
+  exclusions_override: true
