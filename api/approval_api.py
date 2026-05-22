@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import os
+import json
 import yaml
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from openai import OpenAI
 from pydantic import BaseModel
@@ -190,6 +191,33 @@ def summarize_partial_clause(clause: ClauseEvaluation) -> str:
     return f"{clause.policy_text} is partially supported but missing {missing_text}."
 
 
+def join_clause_texts(clause_texts: List[str]) -> str:
+    if not clause_texts:
+        return ""
+    if len(clause_texts) == 1:
+        return clause_texts[0]
+    if len(clause_texts) == 2:
+        return f"{clause_texts[0]} and {clause_texts[1]}"
+    return ", ".join(clause_texts[:-1]) + ", and " + clause_texts[-1]
+
+
+def describe_required_clause_phrase(decision_logic: Dict[str, Any], total_approvals: int) -> str:
+    approvals = (decision_logic or {}).get("approvals", "ANY")
+    if isinstance(approvals, str):
+        approvals_upper = approvals.upper()
+        if approvals_upper == "ANY":
+            return "only 1 approved clause is required"
+        if approvals_upper == "ALL":
+            return f"all {total_approvals} required clauses are satisfied"
+        if approvals_upper.isdigit():
+            return f"only {int(approvals_upper)} approved clauses are required"
+    if isinstance(approvals, int):
+        if approvals == 1:
+            return "only 1 approved clause is required"
+        return f"only {approvals} approved clauses are required"
+    return "only 1 approved clause is required"
+
+
 def generate_case_summary(
     case_id: str,
     payer_name: str,
@@ -200,8 +228,9 @@ def generate_case_summary(
     exclusion_results: List[ClauseEvaluation],
     evidence_review: List[Dict[str, Any]],
     decision_logic: Dict[str, Any],
-    approval_satisfied: bool
-) -> str:
+    approval_satisfied: bool,
+    evaluation_result_summary: str
+) -> Tuple[str, Optional[str]]:
     approval_statuses = [
         f"{c.policy_text}: {c.status}" for c in approval_results
     ]
@@ -220,7 +249,21 @@ def generate_case_summary(
     partial_support_text = " ".join([s for s in partial_clause_summaries if s])
 
     decision_status = "APPROVED" if coverage_status == "covered" and approval_satisfied else "DENIED"
-    exclusions_triggered = any(c.status == "unsatisfied" for c in exclusion_results) and decision_logic.get("exclusions_override", True)
+    exclusions_triggered = any(c.status == "satisfied" for c in exclusion_results) and decision_logic.get("exclusions_override", True)
+
+    approved_clause_texts = [c.policy_text for c in approval_results if c.status == "satisfied"]
+    if coverage_status == "covered" and approval_satisfied and approved_clause_texts:
+        required_phrase = describe_required_clause_phrase(decision_logic, len(approval_results))
+        approved_text = join_clause_texts(approved_clause_texts)
+        if required_phrase.startswith("all "):
+            return (
+                f"The prior authorization request has been approved because {required_phrase}, specifically {approved_text}.",
+                None,
+            )
+        return (
+            f"The prior authorization request has been approved because {required_phrase} and {evaluation_result_summary}, specifically {approved_text}.",
+            None,
+        )
 
     prompt = f"""
 You are a clinical review assistant. Your task is to summarize a prior authorization decision.
@@ -232,11 +275,11 @@ FINAL DECISION: {decision_status}
 Deterministic Rules:
 - Coverage Status: {coverage_status}
 - Prior Authorization Required: {pa_required}
-- Decision Logic: Approval requires {decision_logic.get('approvals', 'ANY')} approval clauses to be satisfied
+- Decision Logic: Approval requires {decision_logic.get('approvals', 'ANY')} clauses to be satisfied
 - Exclusions Override: {decision_logic.get('exclusions_override', True)}
 
-Approval Clauses (medical necessity criteria): {', '.join(approval_statuses) if approval_statuses else 'none evaluated'}
-Exclusion Clauses (contraindications): {', '.join(exclusion_statuses) if exclusion_statuses else 'none triggered'}
+Approval Clauses: {', '.join(approval_statuses) if approval_statuses else 'none evaluated'}
+Exclusion Clauses: {', '.join(exclusion_statuses) if exclusion_statuses else 'none triggered'}
 Evidence Categories: {', '.join(categories) if categories else 'none'}
 
 {'Partial support details: ' + partial_support_text if partial_support_text else ''}
@@ -244,55 +287,119 @@ Evidence Categories: {', '.join(categories) if categories else 'none'}
 If the case is not approved, explain what evidence is missing for full support using the policy clause content and concept names in plain English.
 
 Your task:
-1. Write a 1-2 sentence summary that ALIGNS with the {decision_status} decision
-2. Clearly state whether the case is APPROVED or DENIED
-3. Explain the key reason(s) based on the clause results above
-4. Use human-readable clinical language from the policy text (not clause IDs)
+1. Return a JSON object with two keys: "summary_why" and "summary_fixes".
+2. "summary_why" must always be present and explain the decision in plain clinical language.
+3. "summary_fixes" should only be included if the case is not approved.
+4. Use policy_text, not clause IDs.
+5. Use the word "clauses" instead of "qualifying criterion" or similar.
+6. Do not mention medical necessity.
+7. If approved, say why using satisfied approval clause text and tie it to the evaluation result summary.
+8. Keep the summary short and tie it into this evaluation result: {evaluation_result_summary}
+9. Keep the JSON object as the only output.
 
-Remember: Your summary must be consistent with the final decision of {decision_status}. Do not contradict it.
+Example: {{"summary_why": "...", "summary_fixes": "..."}}
 
-Summary:
+Summary JSON:
 """
     try:
         response = openai_client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You write concise clinical decision summaries."},
+                {"role": "system", "content": "You write concise clinical decision summaries as JSON."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0
         )
-        return response.choices[0].message.content.strip()
+        content = response.choices[0].message.content.strip()
+        # Strip Markdown fences
+        if content.startswith("```"):
+            lines = content.splitlines()
+            if lines and lines[0].strip().startswith("```"):
+                for i in range(1, len(lines)):
+                    if lines[i].strip().startswith("```"):
+                        content = "\n".join(lines[1:i]).strip()
+                        break
+
+        # Extract the first JSON object if additional text is present
+        if "{" in content and not content.strip().startswith("{"):
+            first = content.find("{")
+            last = content.rfind("}")
+            if first != -1 and last != -1 and last > first:
+                content = content[first:last+1]
+
+        try:
+            data = json.loads(content)
+            return (
+                data.get("summary_why", "").strip() if isinstance(data.get("summary_why"), str) else "",
+                data.get("summary_fixes").strip() if isinstance(data.get("summary_fixes"), str) else None,
+            )
+        except Exception:
+            # If JSON parsing fails, return raw content as summary_why
+            return content, None
     except Exception:
         # Fallback logic using coverage_status (the source of truth from deterministic rules)
         satisfied_approvals = sum(1 for c in approval_results if c.status == "satisfied")
         total_approvals = len(approval_results)
-        
-        # For display perspective: "unsatisfied" exclusions mean they were technically triggered (bad)
-        triggered_exclusions = sum(1 for c in exclusion_results if c.status == "unsatisfied")
+
+        triggered_exclusions = sum(1 for c in exclusion_results if c.status == "satisfied")
         partial_clauses = [c for c in approval_results if c.status == "partial"]
 
         if coverage_status == "covered":
-            # Approval path
-            if decision_logic.get("approvals", "ANY") == "ALL":
-                return f"The case is approved. All {total_approvals} required approval criteria are satisfied."
-            else:  # ANY
-                return f"The case is approved. {satisfied_approvals} qualifying criterion satisfied."
-        else:
-            # Denial path - determine reason
-            if not pa_required:
-                return "The case is not covered because prior authorization is not required for this service."
-            elif triggered_exclusions > 0 and decision_logic.get("exclusions_override", True):
-                return f"The case is denied due to {triggered_exclusions} contraindication(s) that override approval."
-            elif partial_clauses:
-                partial_details = " ".join(
-                    summarize_partial_clause(c) for c in partial_clauses if summarize_partial_clause(c)
+            required_phrase = describe_required_clause_phrase(decision_logic, total_approvals)
+            if required_phrase.startswith("all "):
+                return (
+                    f"The case is approved because {required_phrase}.",
+                    None,
                 )
-                if partial_details:
-                    return f"The case is not approved. {partial_details}"
-                return f"The case is not approved. Insufficient approval criteria satisfied ({satisfied_approvals} of {total_approvals})."
+            return (
+                f"The case is approved because {required_phrase} and {format_evaluation_result_summary(decision_logic, satisfied_approvals, total_approvals)}.",
+                None,
+            )
+
+        if not pa_required:
+            return (
+                "The case is not covered because prior authorization is not required for this service.",
+                None,
+            )
+
+        if triggered_exclusions > 0 and decision_logic.get("exclusions_override", True):
+            return (
+                f"The case is denied due to {triggered_exclusions} contraindication(s) that override approval.",
+                "Provide documentation showing that the contraindication(s) do not apply or that the exclusion does not trigger.",
+            )
+
+        if partial_clauses:
+            partial_details = " ".join(
+                summarize_partial_clause(c) for c in partial_clauses if summarize_partial_clause(c)
+            )
+            missing_phrases = []
+            for c in partial_clauses:
+                for mid in c.missing_concepts:
+                    p = humanize_concept_id(mid)
+                    if p and p not in missing_phrases:
+                        missing_phrases.append(p)
+            if missing_phrases:
+                if len(missing_phrases) == 1:
+                    fixes = f"Provide documentation supporting {missing_phrases[0]}."
+                else:
+                    fixes = f"Provide documentation supporting {', '.join(missing_phrases[:-1])} and {missing_phrases[-1]}."
             else:
-                return f"The case is not approved. Insufficient approval criteria satisfied ({satisfied_approvals} of {total_approvals})."
+                fixes = f"Provide additional documentation to meet the remaining approval criteria ({satisfied_approvals}/{total_approvals})."
+
+            if partial_details:
+                return (
+                    f"The case is not approved. {partial_details}",
+                    fixes,
+                )
+            return (
+                f"The case is not approved. Insufficient approval criteria satisfied ({satisfied_approvals} of {total_approvals}).",
+                fixes,
+            )
+
+        return (
+            f"The case is not approved. Insufficient approval criteria satisfied ({satisfied_approvals} of {total_approvals}).",
+            None,
+        )
 
 
 # 🔥 NEW: Map extracted concepts to clause-required concepts
@@ -396,7 +503,8 @@ class ApprovalResponse(BaseModel):
     coverage_status: str = "covered"
     evaluation_rule: EvaluationRule
     evaluation_result_summary: str
-    evaluation_summary: str
+    summary_why: str
+    summary_fixes: Optional[str] = None
     review: str
 
 
@@ -474,9 +582,9 @@ def determine_review_status(
 def format_evaluation_rule(decision_logic: Dict[str, Any] | None) -> Dict[str, str]:
     approvals = (decision_logic or {}).get("approvals", "ANY").upper()
     display = (
-        "All policy criteria must be satisfied for approval."
+        "All clauses must be satisfied for approval."
         if approvals == "ALL"
-        else "At least one qualifying medical necessity criterion must be satisfied."
+        else "At least one clause must be satisfied."
     )
     return {
         "decision_logic": approvals,
@@ -491,11 +599,11 @@ def format_evaluation_result_summary(
 ) -> str:
     approvals = (decision_logic or {}).get("approvals", "ANY").upper()
     if approvals == "ALL":
-        return f"{satisfied_approvals} of {total_approvals} required criteria satisfied"
+        return f"{satisfied_approvals} of {total_approvals} required clauses satisfied"
     return (
-        f"{satisfied_approvals} qualifying criterion satisfied"
+        f"{satisfied_approvals} clauses satisfied"
         if satisfied_approvals > 0
-        else "no qualifying criterion satisfied"
+        else "no clauses satisfied"
     )
 
 
@@ -612,18 +720,10 @@ def evaluate_case(
         clause_status = result.get("status", "unsatisfied")
         matched_concepts = wrap_matches(matched)
 
-        # 🔥 For exclusion clauses, invert the status display:
-        # Technical "satisfied" (triggered) → display as "unsatisfied" (bad)
-        # Technical "unsatisfied" (not triggered) → display as "satisfied" (good)
-        if clause_type == "exclusion":
-            if clause_status == "satisfied":
-                display_status = "unsatisfied"
-            elif clause_status == "unsatisfied":
-                display_status = "satisfied"
-            else:  # partial, etc.
-                display_status = clause_status
-        else:
-            display_status = clause_status
+        # Keep exclusion clause status as the actual trigger state.
+        # This ensures partial exclusions stay partial and only truly triggered
+        # exclusions are marked satisfied.
+        display_status = clause_status
 
         enriched = ClauseEvaluation(
             clause_id=result["clause_id"],
@@ -642,8 +742,7 @@ def evaluate_case(
             approval_results.append(enriched)
 
     satisfied_approvals = [c for c in approval_results if c.status == "satisfied"]
-    # With inverted display logic: "unsatisfied" exclusions means technically triggered (bad)
-    triggered_exclusions = [c for c in exclusion_results if c.status == "unsatisfied"]
+    triggered_exclusions = [c for c in exclusion_results if c.status == "satisfied"]
 
     # Determine approval and exclusion status
     if decision_logic.get("approvals", "ANY") == "ALL":
@@ -742,7 +841,7 @@ def build_evidence_review(all_clauses: List[ClauseEvaluation], decision_logic: D
 
         if approval_logic == "ANY":
             if any_satisfied_approvals:
-                # Only show satisfied clauses in categories that have them
+                # Only show satisfied approval clauses in categories that have them
                 satisfied = [c for c in approval_clauses if c.status == "satisfied"]
                 if satisfied:
                     filtered_clauses.extend([{
@@ -765,12 +864,23 @@ def build_evidence_review(all_clauses: List[ClauseEvaluation], decision_logic: D
                 "status": c.status
             } for c in approval_clauses])
 
-        # Always show exclusion clauses
-        filtered_clauses.extend([{
-            "clause_id": c.clause_id,
-            "policy_text": c.policy_text,
-            "status": c.status
-        } for c in exclusion_clauses])
+        triggered_exclusions = [c for c in exclusion_clauses if c.status == "satisfied"]
+        partial_exclusions = [c for c in exclusion_clauses if c.status == "partial"]
+
+        if triggered_exclusions:
+            category_data["status"] = "Insufficient"
+            filtered_clauses.extend([{
+                "clause_id": c.clause_id,
+                "policy_text": c.policy_text,
+                "status": c.status
+            } for c in triggered_exclusions])
+
+        if partial_exclusions:
+            filtered_clauses.extend([{
+                "clause_id": c.clause_id,
+                "policy_text": c.policy_text,
+                "status": c.status
+            } for c in partial_exclusions])
 
         # Only include category if it has clauses to show
         if filtered_clauses:
@@ -853,9 +963,9 @@ async def run_case(case_id: str):
             context
         )
 
-        # 🔥 Filter exclusions: only include if any are triggered
+        # 🔥 Filter exclusions passed into evidence review: include partial and triggered exclusions.
         filtered_exclusion_results = [
-            c for c in exclusion_results if c.status or c.matched_concepts
+            c for c in exclusion_results if c.status in {"satisfied", "partial"}
         ]
 
         all_results = approval_results + filtered_exclusion_results
@@ -865,31 +975,32 @@ async def run_case(case_id: str):
         update_case_status(case_id, "error")
         raise
 
-    case_summary = generate_case_summary(
+    evaluation_rule = format_evaluation_rule(decision_logic)
+    evaluation_result_summary = format_evaluation_result_summary(
+        decision_logic,
+        satisfied_approvals=len([c for c in approval_results if c.status == "satisfied"]),
+        total_approvals=len(approval_results),
+    )
+
+    summary_why, summary_fixes = generate_case_summary(
         case_id=case_id,
         payer_name=payer_name,
         cpt_code=case["cpt_code"],
         pa_required=pa_required,
         coverage_status=coverage_status,
         approval_results=approval_results,
-        exclusion_results=filtered_exclusion_results,
+        exclusion_results=exclusion_results,
         evidence_review=evidence_review,
         decision_logic=decision_logic,
-        approval_satisfied=approval_satisfied
+        approval_satisfied=approval_satisfied,
+        evaluation_result_summary=evaluation_result_summary
     )
 
     review_status = determine_review_status(
         coverage_status=coverage_status,
         approval_results=approval_results,
         approval_satisfied=approval_satisfied,
-        exclusions_triggered=decision_logic.get("exclusions_override", True) and any(c.status == "unsatisfied" for c in filtered_exclusion_results)
-    )
-
-    evaluation_rule = format_evaluation_rule(decision_logic)
-    evaluation_result_summary = format_evaluation_result_summary(
-        decision_logic,
-        satisfied_approvals=len([c for c in approval_results if c.status == "satisfied"]),
-        total_approvals=len(approval_results),
+        exclusions_triggered=decision_logic.get("exclusions_override", True) and any(c.status == "satisfied" for c in exclusion_results)
     )
 
     response_data = {
@@ -900,12 +1011,14 @@ async def run_case(case_id: str):
         "coverage_status": coverage_status,
         "evaluation_rule": evaluation_rule,
         "evaluation_result_summary": evaluation_result_summary,
-        "evaluation_summary": case_summary,
+        "summary_why": summary_why,
         "review": review_status
     }
-    # Only include exclusions if any evidence exists    
-    if filtered_exclusion_results:
-        response_data["exclusion_clauses"] = filtered_exclusion_results
+    if summary_fixes:
+        response_data["summary_fixes"] = summary_fixes
+
+    # Always include the full set of exclusion clauses in the response (show all possible exclusions)
+    response_data["exclusion_clauses"] = exclusion_results
 
     return ApprovalResponse(**response_data)
 
