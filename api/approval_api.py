@@ -5,9 +5,19 @@ import json
 import yaml
 from typing import List, Dict, Any, Optional, Tuple
 from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi.responses import HTMLResponse, Response
 from openai import OpenAI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from content import (
+    ContentBrief,
+    ContentServiceError,
+    GeneratedPost,
+    UpdateApprovalStatusRequest,
+    create_linkedin_draft,
+    list_linkedin_drafts,
+    update_linkedin_draft_status,
+)
 from extractors.openai_concept_extractor import extract_concepts_from_text
 from extractors.section_extractor import extract_concepts_from_sections
 
@@ -18,6 +28,14 @@ from evaluators.evidence_category_evaluator import group_clauses_by_evidence_cat
 
 # ✅ NEW IMPORTS
 from resolvers.concept_resolver import infer_derived_concepts
+from fhir.client import DEFAULT_MOCK_HEALTH_BASE_URL, FHIRClient, FHIRClientError
+from fhir.mapper import (
+    coverage_payer_display,
+    patient_demographics,
+    patient_display_name,
+    patient_to_document_text,
+    resources_to_document_text,
+)
 
 from storage.case_store import (
     create_case,
@@ -30,6 +48,16 @@ from storage.document_store import (
     save_document,
     get_documents_for_case,
     get_document
+)
+from forms.template_filler import fill_prior_auth_template
+from reports.generator import generate_prior_auth_packet_pdf, build_report_context, render_report_html
+from submissions import (
+    SubmissionServiceError,
+    build_case_artifacts,
+    delivery_from_result,
+    send_filled_template_for_case,
+    send_standard_form_email,
+    submit_prior_auth_case as service_submit_prior_auth_case,
 )
 
 # ===============================
@@ -218,6 +246,98 @@ def describe_required_clause_phrase(decision_logic: Dict[str, Any], total_approv
     return "only 1 approved clause is required"
 
 
+def normalize_clause_fragment(policy_text: str) -> str:
+    return (policy_text or "").strip().rstrip(".;: ,")
+
+
+def build_approved_summary(
+    decision_logic: Dict[str, Any],
+    approval_results: List["ClauseEvaluation"],
+    approved_clause_texts: List[str],
+) -> str:
+    cleaned_texts = []
+    for text in approved_clause_texts:
+        cleaned = normalize_clause_fragment(text)
+        if cleaned:
+            cleaned_texts.append(cleaned[0].lower() + cleaned[1:] if len(cleaned) > 1 else cleaned.lower())
+    approved_text = join_clause_texts(cleaned_texts)
+
+    approvals = str((decision_logic or {}).get("approvals", "ANY")).upper()
+    if approvals == "ALL":
+        if approved_text:
+            return (
+                "The prior authorization request has been approved because the submitted "
+                f"documentation supports all required findings, including {approved_text}."
+            )
+        return "The prior authorization request has been approved because the submitted documentation supports all required findings."
+
+    if approved_text:
+        return (
+            "The prior authorization request has been approved because the submitted "
+            f"documentation supports {approved_text}."
+        )
+    return "The prior authorization request has been approved based on the submitted documentation."
+
+
+def build_review_summary(
+    approved_clause_texts: List[str],
+    partial_exclusion_texts: List[str],
+) -> str:
+    approved_text = join_clause_texts([
+        cleaned[0].lower() + cleaned[1:] if len(cleaned) > 1 else cleaned.lower()
+        for text in approved_clause_texts
+        for cleaned in [normalize_clause_fragment(text)]
+        if cleaned
+    ])
+    exclusion_text = join_clause_texts([
+        normalize_clause_fragment(text)
+        for text in partial_exclusion_texts
+        if normalize_clause_fragment(text)
+    ])
+
+    if approved_text and exclusion_text:
+        return (
+            "The prior authorization request needs review because although the submitted "
+            f"documentation supports {approved_text}, an exclusion clause regarding {exclusion_text} "
+            "was partially triggered."
+        )
+    if exclusion_text:
+        return (
+            "The prior authorization request needs review because an exclusion clause regarding "
+            f"{exclusion_text} was partially triggered."
+        )
+    return "The prior authorization request needs review based on the submitted documentation."
+
+
+def summarize_clause_counts(
+    approval_results: List["ClauseEvaluation"],
+    exclusion_results: List["ClauseEvaluation"],
+    decision_logic: Dict[str, Any] | None,
+    approval_satisfied: bool,
+    exclusions_triggered: bool,
+) -> Dict[str, Optional[int] | str]:
+    approval_logic = str((decision_logic or {}).get("approvals", "ANY")).upper()
+    include_not_met = approval_logic == "ALL" or exclusions_triggered or not approval_satisfied
+
+    counted_clauses = list(approval_results)
+    if include_not_met:
+        counted_clauses.extend(exclusion_results)
+
+    return {
+        "clauses_met": sum(1 for clause in counted_clauses if clause.status == "satisfied"),
+        "clauses_need_attention": (
+            sum(1 for clause in counted_clauses if clause.status == "partial")
+            + sum(1 for clause in exclusion_results if clause.status == "partial" and clause not in counted_clauses)
+        ),
+        "clauses_not_met": (
+            sum(1 for clause in counted_clauses if clause.status == "unsatisfied")
+            if include_not_met
+            else None
+        ),
+        "requirements_checked": f"{len(approval_results)}/{len(approval_results)}",
+    }
+
+
 def generate_case_summary(
     case_id: str,
     payer_name: str,
@@ -250,18 +370,17 @@ def generate_case_summary(
 
     decision_status = "APPROVED" if coverage_status == "covered" and approval_satisfied else "DENIED"
     exclusions_triggered = any(c.status == "satisfied" for c in exclusion_results) and decision_logic.get("exclusions_override", True)
+    partial_exclusion_texts = [c.policy_text for c in exclusion_results if c.status == "partial"]
 
     approved_clause_texts = [c.policy_text for c in approval_results if c.status == "satisfied"]
-    if coverage_status == "covered" and approval_satisfied and approved_clause_texts:
-        required_phrase = describe_required_clause_phrase(decision_logic, len(approval_results))
-        approved_text = join_clause_texts(approved_clause_texts)
-        if required_phrase.startswith("all "):
-            return (
-                f"The prior authorization request has been approved because {required_phrase}, specifically {approved_text}.",
-                None,
-            )
+    if coverage_status == "covered" and approval_satisfied and partial_exclusion_texts:
         return (
-            f"The prior authorization request has been approved because {required_phrase} and {evaluation_result_summary}, specifically {approved_text}.",
+            build_review_summary(approved_clause_texts, partial_exclusion_texts),
+            None,
+        )
+    if coverage_status == "covered" and approval_satisfied and approved_clause_texts:
+        return (
+            build_approved_summary(decision_logic, approval_results, approved_clause_texts),
             None,
         )
 
@@ -503,9 +622,123 @@ class ApprovalResponse(BaseModel):
     coverage_status: str = "covered"
     evaluation_rule: EvaluationRule
     evaluation_result_summary: str
+    num_documents: int
+    clauses_met: Optional[int] = None
+    clauses_need_attention: Optional[int] = None
+    clauses_not_met: Optional[int] = None
+    requirements_checked: str
     summary_why: str
     summary_fixes: Optional[str] = None
     review: str
+
+
+class PriorAuthPacketRequest(BaseModel):
+    case_id: str
+
+
+class StandardizedPriorAuthForm(BaseModel):
+    patient_name: str
+    patient_dob: str
+    member_id: str
+    payer: str
+    provider_name: str
+    provider_npi: str
+    provider_phone: str
+    provider_fax: Optional[str] = None
+    cpt_code: str
+    diagnosis_codes: List[str] = []
+    requested_service: str
+    place_of_service: Optional[str] = "outpatient"
+    urgency: Optional[str] = "standard"
+    coverage_status: Optional[str] = None
+    review_status: Optional[str] = None
+    evidence_review: Optional[List[Dict[str, Any]]] = None
+    clinical_summary: str
+    supporting_notes: Optional[str] = None
+    case_id: Optional[str] = None
+
+
+class PriorAuthFormEmailRequest(BaseModel):
+    form: StandardizedPriorAuthForm
+    to_email: Optional[str] = None
+
+
+class PriorAuthTemplateEmailRequest(BaseModel):
+    case_id: str
+    to_email: Optional[str] = None
+
+
+class PriorAuthSubmissionRequest(BaseModel):
+    case_id: str
+    submission_method: str = "email"
+    to_email: Optional[str] = None
+    include_completed_template: bool = True
+    include_supporting_documents: bool = False
+
+
+class PriorAuthSubmissionResponse(BaseModel):
+    case_id: str
+    submission_method: str
+    status: str
+    message: Optional[str] = None
+    prepared_payload: Dict[str, Any] = Field(default_factory=dict)
+    artifact_filenames: List[str] = Field(default_factory=list)
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+    delivery_status: Optional[str] = None
+    delivery_mode: Optional[str] = None
+    to_email: Optional[str] = None
+    attachment_filename: Optional[str] = None
+    attachment_filenames: List[str] = Field(default_factory=list)
+    outbox_path: Optional[str] = None
+
+
+class MockHealthPatientSearchResponse(BaseModel):
+    fhir_base_url: str
+    patients: List[Dict[str, Any]]
+
+
+class MockHealthImportRequest(BaseModel):
+    patient_id: str
+    cpt_code: str = "64640"
+    payer: Optional[str] = None
+    fhir_base_url: Optional[str] = None
+    bearer_token: Optional[str] = None
+
+
+class MockHealthImportResponse(BaseModel):
+    case_id: str
+    patient_name: str
+    payer: str
+    cpt_code: str
+    fhir_base_url: str
+    documents_imported: int
+    resources_imported: Dict[str, int]
+    message: str
+
+
+class MockHealthTemplateEmailRequest(MockHealthImportRequest):
+    to_email: Optional[str] = None
+
+
+class MockHealthTemplateEmailResponse(BaseModel):
+    case_id: str
+    patient_name: str
+    payer: str
+    cpt_code: str
+    delivery_status: str
+    delivery_mode: str
+    to_email: str
+    attachment_filename: str
+    outbox_path: Optional[str] = None
+    message: str
+
+
+class PriorAuthFormEmailResponse(BaseModel):
+    delivery_status: str
+    delivery_mode: str
+    to_email: str
+    attachment_filename: str
+    outbox_path: Optional[str] = None
 
 
 class CaseSummary(BaseModel):
@@ -564,16 +797,19 @@ def final_decision(coverage_covered: bool, pa_required: bool, exclusions_trigger
 def determine_review_status(
     coverage_status: str,
     approval_results: List[ClauseEvaluation],
+    exclusion_results: List[ClauseEvaluation],
     approval_satisfied: bool,
     exclusions_triggered: bool
 ) -> str:
-    if coverage_status == "covered" and approval_satisfied and not exclusions_triggered:
+    has_partial_exclusion = any(c.status == "partial" for c in exclusion_results)
+
+    if coverage_status == "covered" and approval_satisfied and not exclusions_triggered and not has_partial_exclusion:
         return "Ready to submit"
 
     if exclusions_triggered or coverage_status != "covered":
         return "Do not submit"
 
-    if any(c.status == "partial" for c in approval_results):
+    if has_partial_exclusion or any(c.status == "partial" for c in approval_results):
         return "Review before submitting"
 
     return "Do not submit"
@@ -895,6 +1131,213 @@ def build_evidence_review(all_clauses: List[ClauseEvaluation], decision_logic: D
     return results
 
 
+def build_case_evaluation_response(case_id: str) -> ApprovalResponse:
+    case = get_case(case_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+
+    documents = get_documents_for_case(case_id)
+    if not documents:
+        raise HTTPException(status_code=400, detail="No documents attached")
+
+    payer_name = case["payer"].lower()
+
+    context = {
+        "state": "NY",
+        "plan_type": case.get("plan_type", "commercial"),
+        "place_of_service": case.get("place_of_service", "outpatient"),
+    }
+
+    try:
+        update_case_status(case_id, "processing")
+
+        combined_text = "\n\n".join(
+            doc.get("text", "") for doc in documents
+        )
+
+        approval_results, exclusion_results, pa_required, coverage_status, decision_logic, approval_satisfied = evaluate_case(
+            case_id,
+            combined_text,
+            payer_name,
+            case["cpt_code"],
+            context
+        )
+
+        # Filter exclusions passed into evidence review: include partial and triggered exclusions.
+        filtered_exclusion_results = [
+            c for c in exclusion_results if c.status in {"satisfied", "partial"}
+        ]
+
+        all_results = approval_results + filtered_exclusion_results
+        evidence_review = build_evidence_review(all_results, decision_logic)
+
+    except Exception:
+        update_case_status(case_id, "error")
+        raise
+
+    evaluation_rule = format_evaluation_rule(decision_logic)
+    evaluation_result_summary = format_evaluation_result_summary(
+        decision_logic,
+        satisfied_approvals=len([c for c in approval_results if c.status == "satisfied"]),
+        total_approvals=len(approval_results),
+    )
+
+    summary_why, summary_fixes = generate_case_summary(
+        case_id=case_id,
+        payer_name=payer_name,
+        cpt_code=case["cpt_code"],
+        pa_required=pa_required,
+        coverage_status=coverage_status,
+        approval_results=approval_results,
+        exclusion_results=exclusion_results,
+        evidence_review=evidence_review,
+        decision_logic=decision_logic,
+        approval_satisfied=approval_satisfied,
+        evaluation_result_summary=evaluation_result_summary
+    )
+
+    exclusions_triggered = decision_logic.get("exclusions_override", True) and any(
+        c.status == "satisfied" for c in exclusion_results
+    )
+    review_status = determine_review_status(
+        coverage_status=coverage_status,
+        approval_results=approval_results,
+        exclusion_results=exclusion_results,
+        approval_satisfied=approval_satisfied,
+        exclusions_triggered=exclusions_triggered,
+    )
+    clause_counts = summarize_clause_counts(
+        approval_results=approval_results,
+        exclusion_results=exclusion_results,
+        decision_logic=decision_logic,
+        approval_satisfied=approval_satisfied,
+        exclusions_triggered=exclusions_triggered,
+    )
+
+    response_data = {
+        "case_id": case_id,
+        "evidence_review": evidence_review,
+        "approval_clauses": approval_results,
+        "pa_required": pa_required,
+        "coverage_status": coverage_status,
+        "evaluation_rule": evaluation_rule,
+        "evaluation_result_summary": evaluation_result_summary,
+        "num_documents": len(documents),
+        "clauses_met": clause_counts["clauses_met"],
+        "clauses_need_attention": clause_counts["clauses_need_attention"],
+        "clauses_not_met": clause_counts["clauses_not_met"],
+        "requirements_checked": clause_counts["requirements_checked"],
+        "summary_why": summary_why,
+        "review": review_status
+    }
+    if summary_fixes:
+        response_data["summary_fixes"] = summary_fixes
+
+    # Always include the full set of exclusion clauses in the response (show all possible exclusions)
+    response_data["exclusion_clauses"] = exclusion_results
+
+    return ApprovalResponse(**response_data)
+
+
+FHIR_CASE_RESOURCE_TYPES = [
+    "Condition",
+    "Procedure",
+    "Observation",
+    "DiagnosticReport",
+    "DocumentReference",
+    "MedicationRequest",
+]
+
+
+def clean_optional_api_value(value: Optional[str]) -> Optional[str]:
+    if value is None:
+        return None
+
+    cleaned = value.strip()
+    if not cleaned or cleaned.lower() in {"string", "null", "none"}:
+        return None
+    return cleaned
+
+
+def create_case_from_fhir(
+    *,
+    patient_id: str,
+    cpt_code: str,
+    payer: Optional[str],
+    fhir_base_url: Optional[str],
+    bearer_token: Optional[str],
+) -> MockHealthImportResponse:
+    cleaned_patient_id = clean_optional_api_value(patient_id)
+    if not cleaned_patient_id:
+        raise HTTPException(
+            status_code=400,
+            detail="patient_id is required. Use an id returned by /fhir/mock-health/patients.",
+        )
+
+    cleaned_cpt_code = clean_optional_api_value(cpt_code) or "64640"
+    cleaned_payer = clean_optional_api_value(payer)
+    cleaned_fhir_base_url = clean_optional_api_value(fhir_base_url)
+    cleaned_bearer_token = clean_optional_api_value(bearer_token)
+
+    client = FHIRClient(
+        base_url=cleaned_fhir_base_url or DEFAULT_MOCK_HEALTH_BASE_URL,
+        bearer_token=cleaned_bearer_token,
+    )
+
+    try:
+        patient = client.get_resource("Patient", cleaned_patient_id)
+        coverages = client.search_entries("Coverage", {"beneficiary": f"Patient/{cleaned_patient_id}", "_count": 10})
+        resources_by_type = {
+            resource_type: client.search_entries(resource_type, {"patient": cleaned_patient_id, "_count": 20})
+            for resource_type in FHIR_CASE_RESOURCE_TYPES
+        }
+    except FHIRClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    patient_name = patient_display_name(patient)
+    resolved_payer = cleaned_payer or coverage_payer_display(coverages) or "unknown"
+    case = create_case(
+        patient_name=patient_name,
+        payer=resolved_payer.lower(),
+        cpt_code=cleaned_cpt_code,
+    )
+    case["fhir_patient"] = patient_demographics(patient, cleaned_patient_id)
+    case["fhir_base_url"] = client.base_url
+
+    save_document(
+        case_id=case["case_id"],
+        filename="fhir_patient_summary.txt",
+        text=patient_to_document_text(patient),
+    )
+
+    documents_imported = 1
+    resources_imported = {
+        "Patient": 1,
+        "Coverage": len(coverages),
+    }
+    for resource_type, resources in resources_by_type.items():
+        resources_imported[resource_type] = len(resources)
+        if not resources:
+            continue
+        save_document(
+            case_id=case["case_id"],
+            filename=f"fhir_{resource_type.lower()}_summary.txt",
+            text=resources_to_document_text(resource_type, resources),
+        )
+        documents_imported += 1
+
+    return MockHealthImportResponse(
+        case_id=case["case_id"],
+        patient_name=patient_name,
+        payer=case["payer"],
+        cpt_code=case["cpt_code"],
+        fhir_base_url=client.base_url,
+        documents_imported=documents_imported,
+        resources_imported=resources_imported,
+        message="FHIR resources imported. Run /run_case/{case_id} to analyze.",
+    )
+
+
 # ===============================
 # Endpoints
 # ===============================
@@ -929,8 +1372,108 @@ async def upload_files(
     }
 
 
-@app.post("/run_case/{case_id}")
+@app.post("/demo/preload-64640-case-1")
+async def preload_64640_case_1():
+    example_dir = os.path.join(BASE_DIR, "examples", "64640", "case_01")
+    if not os.path.isdir(example_dir):
+        raise HTTPException(status_code=404, detail="Demo case files not found")
+
+    case = create_case(
+        patient_name="Jay Doe",
+        payer="humana",
+        cpt_code="64640",
+    )
+
+    loaded_files = []
+    for filename in sorted(os.listdir(example_dir)):
+        if not filename.endswith(".txt"):
+            continue
+        path = os.path.join(example_dir, filename)
+        with open(path, "r", encoding="utf-8") as f:
+            text = f.read()
+        save_document(
+            case_id=case["case_id"],
+            filename=filename,
+            text=text,
+        )
+        loaded_files.append(filename)
+
+    if not loaded_files:
+        raise HTTPException(status_code=404, detail="No demo text files found")
+
+    return {
+        "case_id": case["case_id"],
+        "payer": case["payer"],
+        "cpt_code": case["cpt_code"],
+        "patient_name": case["patient_name"],
+        "documents_loaded": loaded_files,
+        "message": "Demo 64640 case 1 loaded. Run /run_case/{case_id} to analyze.",
+    }
+
+
+@app.get("/fhir/mock-health/patients", response_model=MockHealthPatientSearchResponse)
+async def list_mock_health_patients(count: int = 5, bearer_token: Optional[str] = None):
+    client = FHIRClient(base_url=DEFAULT_MOCK_HEALTH_BASE_URL, bearer_token=bearer_token)
+    try:
+        patients = client.search_entries("Patient", {"_count": max(1, min(count, 20))})
+    except FHIRClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    return MockHealthPatientSearchResponse(
+        fhir_base_url=client.base_url,
+        patients=[
+            {
+                "id": patient.get("id"),
+                "name": patient_display_name(patient),
+                "birthDate": patient.get("birthDate"),
+                "gender": patient.get("gender"),
+            }
+            for patient in patients
+        ],
+    )
+
+
+@app.post("/fhir/mock-health/import-case", response_model=MockHealthImportResponse)
+async def import_mock_health_case(request: MockHealthImportRequest):
+    return create_case_from_fhir(
+        patient_id=request.patient_id,
+        cpt_code=request.cpt_code,
+        payer=request.payer,
+        fhir_base_url=request.fhir_base_url,
+        bearer_token=request.bearer_token,
+    )
+
+
+@app.post("/fhir/mock-health/send-template-email", response_model=MockHealthTemplateEmailResponse)
+async def send_mock_health_template_email(request: MockHealthTemplateEmailRequest):
+    imported = create_case_from_fhir(
+        patient_id=request.patient_id,
+        cpt_code=request.cpt_code,
+        payer=request.payer,
+        fhir_base_url=request.fhir_base_url,
+        bearer_token=request.bearer_token,
+    )
+    case = get_case(imported.case_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Imported case was not found")
+
+    try:
+        delivery = send_filled_template_for_case(case, request.to_email)
+    except SubmissionServiceError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    return MockHealthTemplateEmailResponse(
+        case_id=case["case_id"],
+        patient_name=case.get("patient_name", "Unknown"),
+        payer=case.get("payer", "unknown"),
+        cpt_code=case.get("cpt_code", ""),
+        message="FHIR patient data was imported, inserted into the PDF template, and sent by email.",
+        **delivery,
+    )
+
+
+@app.post("/run_case/{case_id}", response_model=ApprovalResponse, response_model_exclude_none=True)
 async def run_case(case_id: str):
+    return build_case_evaluation_response(case_id)
 
     case = get_case(case_id)
     if not case:
@@ -996,11 +1539,22 @@ async def run_case(case_id: str):
         evaluation_result_summary=evaluation_result_summary
     )
 
+    exclusions_triggered = decision_logic.get("exclusions_override", True) and any(
+        c.status == "satisfied" for c in exclusion_results
+    )
     review_status = determine_review_status(
         coverage_status=coverage_status,
         approval_results=approval_results,
+        exclusion_results=exclusion_results,
         approval_satisfied=approval_satisfied,
-        exclusions_triggered=decision_logic.get("exclusions_override", True) and any(c.status == "satisfied" for c in exclusion_results)
+        exclusions_triggered=exclusions_triggered,
+    )
+    clause_counts = summarize_clause_counts(
+        approval_results=approval_results,
+        exclusion_results=exclusion_results,
+        decision_logic=decision_logic,
+        approval_satisfied=approval_satisfied,
+        exclusions_triggered=exclusions_triggered,
     )
 
     response_data = {
@@ -1011,6 +1565,11 @@ async def run_case(case_id: str):
         "coverage_status": coverage_status,
         "evaluation_rule": evaluation_rule,
         "evaluation_result_summary": evaluation_result_summary,
+        "num_documents": len(documents),
+        "clauses_met": clause_counts["clauses_met"],
+        "clauses_need_attention": clause_counts["clauses_need_attention"],
+        "clauses_not_met": clause_counts["clauses_not_met"],
+        "requirements_checked": clause_counts["requirements_checked"],
         "summary_why": summary_why,
         "review": review_status
     }
@@ -1021,6 +1580,150 @@ async def run_case(case_id: str):
     response_data["exclusion_clauses"] = exclusion_results
 
     return ApprovalResponse(**response_data)
+
+
+@app.post("/prior-auth-forms/send-email", response_model=PriorAuthFormEmailResponse)
+async def send_prior_auth_form_email(request: PriorAuthFormEmailRequest):
+    form_payload = (
+        request.form.model_dump(exclude_none=True)
+        if hasattr(request.form, "model_dump")
+        else request.form.dict(exclude_none=True)
+    )
+    try:
+        result = send_standard_form_email(form_payload, request.to_email)
+    except SubmissionServiceError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    return PriorAuthFormEmailResponse(**result)
+
+
+@app.post("/prior-auth-submissions", response_model=PriorAuthSubmissionResponse)
+async def submit_prior_auth_case(request: PriorAuthSubmissionRequest):
+    case = get_case(request.case_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+
+    try:
+        artifacts = build_case_artifacts(
+            case=case,
+            documents=get_documents_for_case(request.case_id),
+            include_completed_template=request.include_completed_template,
+            include_supporting_documents=request.include_supporting_documents,
+        )
+        result = service_submit_prior_auth_case(
+            case=case,
+            submission_method=request.submission_method,
+            artifacts=artifacts,
+            to_email=request.to_email,
+        )
+    except SubmissionServiceError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+    delivery = delivery_from_result(result)
+    return PriorAuthSubmissionResponse(
+        case_id=case["case_id"],
+        submission_method=result.method,
+        status=result.status,
+        message=result.message,
+        prepared_payload=result.prepared_payload,
+        artifact_filenames=[artifact.filename for artifact in result.artifacts],
+        metadata=result.metadata,
+        delivery_status=delivery.get("delivery_status"),
+        delivery_mode=delivery.get("delivery_mode"),
+        to_email=delivery.get("to_email"),
+        attachment_filename=delivery.get("attachment_filename"),
+        attachment_filenames=delivery.get("attachment_filenames", []),
+        outbox_path=delivery.get("outbox_path"),
+    )
+
+
+@app.post("/prior-auth-forms/send-template-email", response_model=PriorAuthFormEmailResponse)
+async def send_prior_auth_template_email(request: PriorAuthTemplateEmailRequest):
+    case = get_case(request.case_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+
+    try:
+        result = send_filled_template_for_case(case, request.to_email)
+    except SubmissionServiceError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    return PriorAuthFormEmailResponse(**result)
+
+
+@app.post("/content/linkedin/drafts/generate", response_model=GeneratedPost)
+async def generate_linkedin_content_draft(brief: ContentBrief):
+    return create_linkedin_draft(brief)
+
+
+@app.get("/content/linkedin/drafts", response_model=List[GeneratedPost])
+async def get_linkedin_content_drafts():
+    return list_linkedin_drafts()
+
+
+@app.patch("/content/linkedin/drafts/{draft_id}/approval-status", response_model=GeneratedPost)
+async def update_linkedin_content_draft_status(
+    draft_id: str,
+    request: UpdateApprovalStatusRequest,
+):
+    try:
+        return update_linkedin_draft_status(draft_id, request.approval_status)
+    except ContentServiceError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+
+@app.get("/prior-auth-forms/template-preview/{case_id}")
+async def preview_filled_prior_auth_template(case_id: str):
+    case = get_case(case_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+
+    try:
+        pdf_bytes = fill_prior_auth_template(case)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Template fill failed: {exc}") from exc
+
+    filename = f"filled-prior-auth-template-{case_id}.pdf"
+    headers = {"Content-Disposition": f'inline; filename="{filename}"'}
+    return Response(content=pdf_bytes, media_type="application/pdf", headers=headers)
+
+
+@app.post("/reports/prior-auth-packet")
+async def generate_prior_auth_packet(request: PriorAuthPacketRequest):
+    evaluation = build_case_evaluation_response(request.case_id)
+    case = get_case(request.case_id)
+    documents = get_documents_for_case(request.case_id)
+
+    evaluation_payload = (
+        evaluation.model_dump(exclude_none=True)
+        if hasattr(evaluation, "model_dump")
+        else evaluation.dict(exclude_none=True)
+    )
+    pdf_bytes = generate_prior_auth_packet_pdf(
+        case=case,
+        documents=documents,
+        evaluation=evaluation_payload,
+    )
+
+    filename = f"prior-auth-packet-{request.case_id}.pdf"
+    headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
+    return Response(content=pdf_bytes, media_type="application/pdf", headers=headers)
+
+
+@app.get("/reports/prior-auth-packet/{case_id}/preview", response_class=HTMLResponse)
+async def preview_prior_auth_packet(case_id: str):
+    evaluation = build_case_evaluation_response(case_id)
+    case = get_case(case_id)
+    documents = get_documents_for_case(case_id)
+    evaluation_payload = (
+        evaluation.model_dump(exclude_none=True)
+        if hasattr(evaluation, "model_dump")
+        else evaluation.dict(exclude_none=True)
+    )
+    context = build_report_context(
+        case=case,
+        documents=documents,
+        evaluation=evaluation_payload,
+    )
+    return HTMLResponse(content=render_report_html(context))
 
 
 @app.get("/cases", response_model=List[CaseSummary])

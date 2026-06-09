@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Prior Authorization Review Packet</title>
+    <style>
+      @page {
+        margin: 0.55in;
+        size: letter;
+      }
+      :root {
+        --ink: #183153;
+        --muted: #617388;
+        --line: #d7e1ea;
+        --paper: #f4f7fb;
+        --panel: #ffffff;
+        --good-bg: #e2f3e7;
+        --good-ink: #245c39;
+        --warn-bg: #fff2d6;
+        --warn-ink: #8d5c09;
+        --bad-bg: #fde5e3;
+        --bad-ink: #8b2f2a;
+        --neutral-bg: #eaf0f5;
+        --neutral-ink: #55697e;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Arial, sans-serif;
+        color: #203042;
+        background: var(--paper);
+        font-size: 11px;
+        line-height: 1.45;
+      }
+      .page-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .hero {
+        background: linear-gradient(135deg, #183153, #265f88);
+        color: white;
+        border-radius: 20px;
+        padding: 24px 26px;
+      }
+      .hero-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 18px;
+      }
+      .hero h1 {
+        margin: 0;
+        font-size: 25px;
+        line-height: 1.1;
+      }
+      .hero p {
+        margin: 6px 0 0;
+        color: rgba(255, 255, 255, 0.86);
+        max-width: 420px;
+      }
+      .hero-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+      .hero-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 16px;
+      }
+      .hero-card {
+        background: rgba(255, 255, 255, 0.14);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 14px;
+        padding: 12px;
+      }
+      .hero-label {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: rgba(255, 255, 255, 0.72);
+      }
+      .hero-value {
+        margin-top: 4px;
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .badge {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+      }
+      .good {
+        background: var(--good-bg);
+        color: var(--good-ink);
+      }
+      .warn {
+        background: var(--warn-bg);
+        color: var(--warn-ink);
+      }
+      .bad {
+        background: var(--bad-bg);
+        color: var(--bad-ink);
+      }
+      .neutral {
+        background: var(--neutral-bg);
+        color: var(--neutral-ink);
+      }
+      .section {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 18px;
+        page-break-inside: avoid;
+      }
+      .section-title {
+        margin: 0 0 12px;
+        font-size: 15px;
+        color: var(--ink);
+      }
+      .section-subtitle {
+        margin: 0;
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .summary-grid {
+        display: grid;
+        grid-template-columns: 1.25fr 1fr;
+        gap: 16px;
+      }
+      .summary-box {
+        background: linear-gradient(180deg, #f9fbfd, #f2f6f9);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 16px;
+      }
+      .summary-box p {
+        margin: 0;
+        font-size: 13px;
+      }
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .metric {
+        background: linear-gradient(180deg, #ffffff, #f8fbfd);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 14px;
+        min-height: 82px;
+      }
+      .metric-label {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+      .metric-value {
+        margin-top: 8px;
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--ink);
+      }
+      .metric-note {
+        margin-top: 6px;
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .metric-value.good {
+        color: var(--good-ink);
+      }
+      .metric-value.warn {
+        color: var(--warn-ink);
+      }
+      .metric-value.bad {
+        color: var(--bad-ink);
+      }
+      .metric-value.neutral {
+        color: var(--ink);
+      }
+      .viz-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 1fr;
+        gap: 16px;
+      }
+      .viz-card {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 16px;
+        background: linear-gradient(180deg, #ffffff, #f8fbfd);
+      }
+      .legend {
+        display: flex;
+        gap: 10px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+      }
+      .legend-item {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        color: var(--muted);
+        font-size: 10px;
+      }
+      .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+      }
+      .status-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .status-table th,
+      .status-table td {
+        padding: 10px 8px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+      .status-table th {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+      .clause-card {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 14px;
+        background: #fff;
+        margin-bottom: 10px;
+        page-break-inside: avoid;
+      }
+      .clause-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+      .clause-id {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+      .clause-text {
+        font-size: 13px;
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .subtle {
+        color: var(--muted);
+      }
+      .pill-row {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 6px;
+      }
+      .concept-pill {
+        background: #eef3f8;
+        border-radius: 999px;
+        padding: 4px 8px;
+        color: #466079;
+        font-size: 9px;
+      }
+      .evidence-list {
+        margin: 10px 0 0 0;
+        padding-left: 16px;
+      }
+      .doc-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .doc-card {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 12px;
+        background: linear-gradient(180deg, #ffffff, #f7fafc);
+      }
+      .doc-title {
+        font-weight: 700;
+        color: var(--ink);
+      }
+      .footer-note {
+        font-size: 10px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-shell">
+      <section class="hero">
+        <div class="hero-top">
+          <div>
+            <h1>Prior Authorization Review Packet</h1>
+            <p>Structured payer-ready dashboard generated from the same clause evaluation used by the case API response.</p>
+          </div>
+          <div class="hero-badges">
+            <span class="badge {{ coverage_status_class }}">{{ evaluation.coverage_status|upper }}</span>
+            <span class="badge {{ review_status_class }}">{{ evaluation.review }}</span>
+          </div>
+        </div>
+        <div class="hero-grid">
+          <div class="hero-card">
+            <div class="hero-label">Case ID</div>
+            <div class="hero-value">{{ case.case_id }}</div>
+          </div>
+          <div class="hero-card">
+            <div class="hero-label">Patient</div>
+            <div class="hero-value">{{ case.patient_name }}</div>
+          </div>
+          <div class="hero-card">
+            <div class="hero-label">Payer</div>
+            <div class="hero-value">{{ case.payer|upper }}</div>
+          </div>
+          <div class="hero-card">
+            <div class="hero-label">CPT</div>
+            <div class="hero-value">{{ case.cpt_code }}</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="summary-grid">
+          <div class="summary-box">
+            <h2 class="section-title">Executive Summary</h2>
+            <p>{{ evaluation.summary_why }}</p>
+            {% if evaluation.summary_fixes %}
+            <div style="margin-top: 12px;">
+              <span class="badge warn">Follow-up Needed</span>
+              <p style="margin-top: 8px;">{{ evaluation.summary_fixes }}</p>
+            </div>
+            {% endif %}
+          </div>
+          <div class="summary-box">
+            <h2 class="section-title">Case Snapshot</h2>
+            <p><strong>Generated:</strong> {{ generated_at }}</p>
+            <p><strong>Evaluation Summary:</strong> {{ evaluation.evaluation_result_summary }}</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Decision Dashboard</h2>
+        <div class="metric-grid">
+          {% for metric in metrics %}
+          <div class="metric">
+            <div class="metric-label">{{ metric.label }}</div>
+            <div class="metric-value {{ metric.status_class }}">{{ metric.value }}</div>
+            <div class="metric-note">Updated from structured case evaluation</div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Visualization Summary</h2>
+        <div class="viz-grid">
+          <div class="viz-card">
+            <h3 style="margin:0 0 6px; color: var(--ink);">Overall Clause Status</h3>
+            <p class="section-subtitle">Met, review-needed, and not-met counts across the packet summary fields.</p>
+            <div style="margin-top: 14px;">{{ visuals.clause_status_bar_svg | safe }}</div>
+            <div class="legend">
+              <div class="legend-item"><span class="legend-dot" style="background:#2f7d4b;"></span>Met: {{ visuals.clause_status_counts.satisfied }}</div>
+              <div class="legend-item"><span class="legend-dot" style="background:#e3a12b;"></span>Need review: {{ visuals.clause_status_counts.partial }}</div>
+              <div class="legend-item"><span class="legend-dot" style="background:#c84b44;"></span>Not met: {{ visuals.clause_status_counts.unsatisfied }}</div>
+            </div>
+          </div>
+          <div class="viz-card">
+            <h3 style="margin:0 0 6px; color: var(--ink);">Approval vs Exclusion</h3>
+            <p class="section-subtitle">Clause status distribution split by approval criteria and exclusion review.</p>
+            <div style="margin-top: 12px;">
+              <div class="subtle" style="margin-bottom:6px;">Approval clauses</div>
+              {{ visuals.approval_status_bar_svg | safe }}
+            </div>
+            <div style="margin-top: 14px;">
+              <div class="subtle" style="margin-bottom:6px;">Exclusion clauses</div>
+              {{ visuals.exclusion_status_bar_svg | safe }}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Evidence Review</h2>
+        <table class="status-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Included Clauses</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for category in evidence_review %}
+            <tr>
+              <td><strong>{{ category.evidence_category }}</strong></td>
+              <td><span class="badge {{ category.status_class }}">{{ category.status }}</span></td>
+              <td>
+                {% for clause in category.clauses %}
+                <div style="margin-bottom:6px;">
+                  <span class="badge {{ 'good' if clause.status == 'satisfied' else 'warn' if clause.status == 'partial' else 'bad' }}">{{ clause.status }}</span>
+                  {{ clause.policy_text }}
+                </div>
+                {% endfor %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Approval Clause Analysis</h2>
+        {% for clause in approval_clauses %}
+        <div class="clause-card">
+          <div class="clause-head">
+            <div>
+              <div class="clause-id">{{ clause.clause_id }}</div>
+              <div class="clause-text">{{ clause.policy_text }}</div>
+            </div>
+            <span class="badge {{ clause.status_class }}">{{ clause.status }}</span>
+          </div>
+          {% if clause.missing_concepts %}
+          <div class="pill-row">
+            {% for concept in clause.missing_concepts %}
+            <span class="concept-pill">Missing: {{ concept }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+          {% if clause.matched_concepts %}
+          <ul class="evidence-list">
+            {% for match in clause.matched_concepts %}
+            <li><strong>{{ match.concept_id }}</strong> | confidence {{ match.confidence }}{% if match.certainty_level %} | {{ match.certainty_level }}{% endif %} | {{ match.evidence_text }}</li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="subtle" style="margin:10px 0 0;">No matching evidence captured.</p>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Exclusion Clause Analysis</h2>
+        {% if exclusion_clauses %}
+          {% for clause in exclusion_clauses %}
+          <div class="clause-card">
+            <div class="clause-head">
+              <div>
+                <div class="clause-id">{{ clause.clause_id }}</div>
+                <div class="clause-text">{{ clause.policy_text }}</div>
+              </div>
+              <span class="badge {{ clause.status_class }}">{{ clause.status }}</span>
+            </div>
+            {% if clause.missing_concepts %}
+            <div class="pill-row">
+              {% for concept in clause.missing_concepts %}
+              <span class="concept-pill">Missing: {{ concept }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+            {% if clause.matched_concepts %}
+            <ul class="evidence-list">
+              {% for match in clause.matched_concepts %}
+              <li><strong>{{ match.concept_id }}</strong> | confidence {{ match.confidence }}{% if match.certainty_level %} | {{ match.certainty_level }}{% endif %} | {{ match.evidence_text }}</li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <p class="subtle" style="margin:10px 0 0;">No matching exclusion evidence captured.</p>
+            {% endif %}
+          </div>
+          {% endfor %}
+        {% else %}
+        <p class="subtle">No exclusion clauses were returned for this case.</p>
+        {% endif %}
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Documents Reviewed</h2>
+        <div class="doc-grid">
+          {% for document in documents %}
+          <div class="doc-card">
+            <div class="doc-title">{{ document.filename }}</div>
+            <div class="subtle">{{ document.created_at }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <div class="footer-note">Rendered from the same structured evaluation used by the API response.</div>
+    </div>
+  </body>
+</html>

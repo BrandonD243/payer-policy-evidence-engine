@@ -180,3 +180,69 @@ Pydantic
 OpenAI API
 
 YAML-based policy modeling
+
+## LinkedIn Content Draft Assistant
+
+This MVP creates internal LinkedIn company post drafts from a structured content
+brief. It does not publish to LinkedIn, automate browser actions, scrape content,
+send DMs, comment, or perform engagement automation.
+
+Workflow:
+
+```text
+content brief -> generated draft -> saved draft -> human approval later
+```
+
+Start the API:
+
+```bash
+uvicorn api.approval_api:app --reload
+```
+
+Open Swagger:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+Generate and save a draft:
+
+```http
+POST /content/linkedin/drafts/generate
+```
+
+```json
+{
+  "topic": "Reducing prior authorization friction",
+  "audience": "healthcare operations leaders",
+  "content_pillar": "operational efficiency",
+  "post_type": "thought leadership post",
+  "tone": "clear and practical",
+  "cta": "Talk with your team about where authorization work gets stuck.",
+  "visual_type": "carousel"
+}
+```
+
+List saved drafts:
+
+```http
+GET /content/linkedin/drafts
+```
+
+Update approval status:
+
+```http
+PATCH /content/linkedin/drafts/{draft_id}/approval-status
+```
+
+```json
+{
+  "approval_status": "approved"
+}
+```
+
+Allowed approval statuses:
+
+```text
+draft, needs_review, approved, scheduled, published, rejected
+```
